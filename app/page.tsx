@@ -10,6 +10,7 @@ import {
   FaTelegram,
   FaGithub,
   FaEnvelope,
+  FaSnapchat,
   FaShieldAlt,
   FaCode,
   FaMobile,
@@ -67,6 +68,11 @@ const links = [
     icon: FaFacebook,
     label: 'Facebook',
     href: 'https://facebook.com/ChouaibRamoul',
+  },
+  {
+    icon: FaSnapchat,
+    label: 'Snapchat',
+    href: 'https://snapchat.com/add/taki.eddine25',
   },
 ]
 
