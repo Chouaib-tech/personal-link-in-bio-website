@@ -1,90 +1,16 @@
-# Personal Link-in-Bio Website
+# Chouaib Ramoul – link-in-bio
 
-A professional, dark-themed personal link-in-bio website built with Next.js 14, TypeScript, Tailwind CSS, and Framer Motion.
+Premium mobile-first link-in-bio page (Next.js 14 static export, Tailwind, react-icons), opened from an NFC card. Deployed on Vercel.
 
-## 🚀 Features
+## Edit
+- Links, FR/EN copy, vCard: `lib/content.ts`
+- Image paths (single place): `lib/images.ts`
+- Swap photos: replace `source-images/hero.png` and `source-images/avatar.jpg`, then `python3 scripts/optimize-images.py` (needs Pillow). The 1200x630 social card `public/images/og.jpg` is a separate file to replace.
+- Theme tokens: `tailwind.config.ts`
 
-- **Modern Tech Stack**: Next.js 14 (App Router), TypeScript, Tailwind CSS
-- **Smooth Animations**: Framer Motion for page transitions and interactions
-- **Cyber Aesthetic**: Dark mode with cyan/blue accents
-- **Fully Responsive**: Mobile-first design
-- **SEO Optimized**: Complete metadata configuration
-- **Accessibility**: ARIA labels and semantic HTML
-- **Static Export Ready**: Deployable on Vercel or any static hosting
-
-## 📦 Installation
-
-1. Install dependencies:
+## Run
 ```bash
 npm install
+npm run dev     # http://localhost:3000
+npm run build   # static export to out/
 ```
-
-2. Update the links in `app/page.tsx` with your actual URLs:
-   - Phone number
-   - Personal website
-   - LinkedIn profile
-   - Instagram profile
-   - Facebook profile
-   - Telegram username
-   - GitHub username
-
-3. Run the development server:
-```bash
-npm run dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## 🏗️ Build for Production
-
-```bash
-npm run build
-```
-
-This will create a static export in the `out` directory, ready to deploy.
-
-## 🚢 Deploy to Vercel
-
-1. Push your code to GitHub
-2. Import your repository in Vercel
-3. Vercel will automatically detect Next.js and deploy
-
-Or use the Vercel CLI:
-```bash
-npm i -g vercel
-vercel
-```
-
-## 📁 Project Structure
-
-```
-├── app/
-│   ├── layout.tsx      # Root layout with metadata
-│   ├── page.tsx        # Main page component
-│   └── globals.css     # Global styles
-├── components/
-│   ├── LinkCard.tsx    # Reusable animated link card
-│   └── animations.ts   # Framer Motion variants
-├── next.config.js      # Next.js configuration
-├── tailwind.config.ts  # Tailwind CSS configuration
-└── package.json        # Dependencies
-```
-
-## 🎨 Customization
-
-### Colors
-Edit `tailwind.config.ts` to customize the color scheme:
-- `cyber-bg`: Background color
-- `cyber-accent`: Accent color (cyan/blue)
-- `cyber-text`: Text color
-
-### Animations
-Modify `components/animations.ts` to adjust animation timings and effects.
-
-### Links
-Update the `links` array in `app/page.tsx` to add, remove, or modify links.
-
-## 📝 License
-
-Personal project - All rights reserved.
-

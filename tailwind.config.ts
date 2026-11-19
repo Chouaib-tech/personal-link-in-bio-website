@@ -1,35 +1,22 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
-  content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+  content: ['./app/**/*.{js,ts,jsx,tsx,mdx}', './components/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
       colors: {
-        cyber: {
-          bg: '#0a0a0f',
-          'bg-secondary': '#111118',
-          accent: '#00d9ff',
-          'accent-hover': '#00b8d9',
-          text: '#e0e0e0',
-          'text-muted': '#a0a0a0',
-        },
+        ink: '#0E0E10',
+        paper: '#EBE9E5',
+        accent: { DEFAULT: '#FF4D1F', deep: '#B3120F' },
       },
-      animation: {
-        'glow': 'glow 2s ease-in-out infinite alternate',
+      fontFamily: {
+        sans: ['var(--font-jakarta)', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
-      keyframes: {
-        glow: {
-          '0%': { boxShadow: '0 0 5px #00d9ff, 0 0 10px #00d9ff' },
-          '100%': { boxShadow: '0 0 10px #00d9ff, 0 0 20px #00d9ff, 0 0 30px #00d9ff' },
-        },
+      backgroundImage: {
+        'accent-gradient': 'linear-gradient(150deg, #FF4D1F 0%, #D92B17 50%, #B3120F 100%)',
       },
     },
   },
   plugins: [],
 }
 export default config
-
