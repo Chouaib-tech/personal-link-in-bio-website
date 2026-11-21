@@ -8,18 +8,14 @@ import { COPY, GMAIL_COMPOSE, LINKS, type Lang } from '@/lib/content'
 
 const ICON = 'h-7 w-7 sm:h-9 sm:w-9 lg:h-12 lg:w-12'
 
-// Painted, slightly desaturated: mint, cobalt, orange, deep violet.
-// Cycled by index, so no two neighbours match (3-column phone grid or 5/4 desktop rows).
-const COLORS = ['#5f9c86', '#34599a', '#c06a35', '#583f7c']
-
-type DoorDef = { key: string; label: string; href: string; icon: ReactNode; color: string }
+type DoorDef = { key: string; label: string; href: string; icon: ReactNode }
 
 const brand = (name: BrandName) => <BrandIcon name={name} className={ICON} />
 const stroke = { 'aria-hidden': true, className: ICON, strokeWidth: 1.75 } as const
 
 function buildDoors(lang: Lang): DoorDef[] {
   const c = COPY[lang]
-  const list: Omit<DoorDef, 'color'>[] = [
+  return [
     { key: 'whatsapp', label: 'WhatsApp', href: LINKS.whatsapp, icon: brand('WhatsApp') },
     { key: 'call', label: c.shortCall, href: LINKS.call, icon: <Phone {...stroke} /> },
     { key: 'email', label: c.shortEmail, href: LINKS.email, icon: <Mail {...stroke} /> },
@@ -30,7 +26,6 @@ function buildDoors(lang: Lang): DoorDef[] {
     { key: 'instagram', label: 'Instagram', href: LINKS.instagram, icon: brand('Instagram') },
     { key: 'facebook', label: 'Facebook', href: LINKS.facebook, icon: brand('Facebook') },
   ]
-  return list.map((d, i) => ({ ...d, color: COLORS[i % COLORS.length] }))
 }
 
 const isWeb = (href: string) => href.startsWith('http')
@@ -70,12 +65,17 @@ function BrassDefs() {
 
 function Lever() {
   return (
-    <svg viewBox="0 0 64 28" className="lever" aria-hidden focusable="false">
-      <circle cx="50" cy="14" r="10" fill="url(#brass-rose)" stroke="rgb(0 0 0 / .4)" strokeWidth=".6" />
-      <circle cx="50" cy="14" r="7" fill="none" stroke="rgb(255 255 255 / .35)" strokeWidth=".7" />
-      <path d="M50 10 L18 10.6 Q9.5 11 9.5 14 Q9.5 17 18 17.4 L50 18 Z" fill="url(#brass-bar)" stroke="rgb(0 0 0 / .35)" strokeWidth=".5" />
-      <path d="M17 12 H44" stroke="#fffbe8" strokeOpacity=".85" strokeWidth="1.1" strokeLinecap="round" />
-      <ellipse cx="46.5" cy="10.5" rx="3.2" ry="1.6" fill="#fff" opacity=".55" />
+    <svg viewBox="0 0 44 24" className="lever" aria-hidden focusable="false">
+      {/* baked shadow: no CSS filter on the animated leaf */}
+      <g transform="translate(-1.6 2.2)" fill="#000" opacity=".38">
+        <circle cx="34" cy="12" r="9" />
+        <path d="M34 8.2 L9 8.8 Q3 9.2 3 12 Q3 14.8 9 15.2 L34 15.8 Z" />
+      </g>
+      <circle cx="34" cy="12" r="9" fill="url(#brass-rose)" stroke="rgb(0 0 0 / .4)" strokeWidth=".6" />
+      <circle cx="34" cy="12" r="6.2" fill="none" stroke="rgb(255 255 255 / .35)" strokeWidth=".7" />
+      <path d="M34 8.2 L9 8.8 Q3 9.2 3 12 Q3 14.8 9 15.2 L34 15.8 Z" fill="url(#brass-bar)" stroke="rgb(0 0 0 / .35)" strokeWidth=".5" />
+      <path d="M8.5 10.1 H30" stroke="#fffbe8" strokeOpacity=".85" strokeWidth="1" strokeLinecap="round" />
+      <ellipse cx="36.5" cy="8.4" rx="3" ry="1.5" fill="#fff" opacity=".5" />
     </svg>
   )
 }
@@ -83,6 +83,7 @@ function Lever() {
 function Keyhole() {
   return (
     <svg viewBox="0 0 14 22" className="keyhole" aria-hidden focusable="false">
+      <ellipse cx="5.6" cy="12.6" rx="6" ry="10" fill="#000" opacity=".38" />
       <ellipse cx="7" cy="11" rx="6" ry="10" fill="url(#brass-rose)" stroke="rgb(0 0 0 / .4)" strokeWidth=".6" />
       <circle cx="7" cy="9" r="2.2" fill="#140d05" />
       <path d="M5.8 10.4 H8.2 L8.9 16 H5.1 Z" fill="#140d05" />
@@ -304,19 +305,23 @@ export default function Doors({ lang }: { lang: Lang }) {
               data-entering={isEntering}
               data-first={i === 0 ? '' : undefined}
               data-sm-start={i % 3 === 0 ? '' : undefined}
+              data-sm-end={i % 3 === 2 ? '' : undefined}
               data-sm-last={i === 6 ? '' : undefined}
               data-lg-start={i === 0 || i === 5 ? '' : undefined}
-              data-lg-shift={i === 5 ? '' : undefined}
+              data-lg-end={i === 4 || i === 8 ? '' : undefined}
+              data-lg-shift={i === 5 || i === 8 ? '' : undefined}
               data-lg-last={i === 5 ? '' : undefined}
               className="door-slot"
-              style={{ '--dc': d.color } as CSSProperties}
+              style={{ '--gi': i } as CSSProperties}
             >
+              <span aria-hidden className="wainscot" />
+              <span aria-hidden className="wpanel" />
               <span aria-hidden className="cornice" data-c-sm={i > 0 && i % 3 === 0 ? '' : undefined} data-c-lg={i === 5 ? '' : undefined} />
               <a
                 href={d.href}
                 aria-label={`${c.open} ${d.label}`}
                 {...(isWeb(d.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className="door-link block rounded-t-[999px] focus-visible:ring-offset-4"
+                className="door-link block rounded-sm focus-visible:ring-offset-4"
                 style={{ zIndex: isOpen || isEntering ? 10 : undefined }}
                 onPointerDown={(e) => (lastPointer.current = e.pointerType)}
                 onPointerEnter={(e) => {
@@ -341,6 +346,11 @@ export default function Doors({ lang }: { lang: Lang }) {
                     </span>
                     <span className="leaf">
                       <span className="leaf-face">
+                        <span className="panel p1" />
+                        <span className="panel p2" />
+                        <span className="panel p3" />
+                        <span className="panel p4" />
+                        <span className="panel p5" />
                         <span className="plate">{d.label}</span>
                         <Lever />
                         <Keyhole />

@@ -26,6 +26,10 @@
   --floor-hi: #1c262b;
   --floor-lo: #0b1013;
   --cast: rgb(0 0 0 / 0.55);
+  --wain: #212d32;
+  --rail-hi: #44525a;
+  --rail: #33414a;
+  --rail-lo: #222d33;
   --spill: 0.62;
   --hint: #ecd7a8;
 }
@@ -39,7 +43,7 @@
   color-scheme: light;
 
   /* door scene: warm plaster in daylight */
-  --wall: #e2d4b8;
+  --wall: #e6d9bf;
   --wall-light: rgb(255 248 224 / 0.75);
   --vignette: rgb(110 80 40 / 0.3);
   --noise: 0.07;
@@ -51,6 +55,10 @@
   --floor-hi: #cdb994;
   --floor-lo: #a89270;
   --cast: rgb(72 50 22 / 0.32);
+  --wain: #f6f0e2;
+  --rail-hi: #ffffff;
+  --rail: #f1e9d6;
+  --rail-lo: #d3c7ac;
   --spill: 0.4;
   --hint: #2d2312;
 }
@@ -102,12 +110,28 @@
   --sk: 18px; /* skirting height */
   --G: 30px; /* wall space between a floor and the next row */
   --R: 16px;
+  --rail-h: 7px; /* chair rail */
+  --th: 5px; /* door threshold */
+  --stile: 2px; /* gap between wainscot panels */
+  /* WALNUT: change these three numbers for oak (e.g. 34 / 48% / 42%) */
+  --wh: 26;
+  --ws: 44%;
+  --wl: 25%;
+  --wood: hsl(var(--wh) var(--ws) var(--wl));
+  --wood-hi: hsl(var(--wh) var(--ws) calc(var(--wl) + 9%));
+  --wood-lo: hsl(var(--wh) var(--ws) calc(var(--wl) - 10%));
+  /* procedural grain, three seeds: static background images, never animated */
+  --grain-a: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='520'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.3 .011' numOctaves='3' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .08  0 0 0 0 .04  0 0 0 0 .012  1.6 0 0 0 -.6'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+  --grain-b: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='520'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.27 .013' numOctaves='3' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .08  0 0 0 0 .04  0 0 0 0 .012  1.6 0 0 0 -.6'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+  --grain-c: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='520'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.34 .009' numOctaves='3' seed='27' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .08  0 0 0 0 .04  0 0 0 0 .012  1.6 0 0 0 -.6'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
   position: relative;
   border-radius: var(--R);
   background-color: var(--wall);
   box-shadow:
     0 0 0 1px var(--line),
     0 24px 48px -24px rgb(0 0 0 / 0.5);
+  /* keeps the raster scale fixed for the whole push AND the zoom-out (no re-raster at x14) */
+  will-change: transform;
   transition:
     background-color 0.65s ease,
     transform 0.5s ease-out;
@@ -159,6 +183,23 @@
   min-width: 0;
   --rw: calc(300% + 2 * var(--gx) + 2 * var(--sp)); /* full wall width, in li widths */
   --shift: 0px;
+  --el: calc(var(--gx) / 2); /* how far the wainscot panel reaches left / right of the door */
+  --er: calc(var(--gx) / 2);
+}
+.door-slot:nth-child(3n + 1) {
+  --grain: var(--grain-a);
+}
+.door-slot:nth-child(3n + 2) {
+  --grain: var(--grain-b);
+}
+.door-slot:nth-child(3n) {
+  --grain: var(--grain-c);
+}
+.door-slot[data-sm-start] {
+  --el: calc(var(--sp) + var(--shift));
+}
+.door-slot[data-sm-end] {
+  --er: calc(var(--sp) + var(--shift));
 }
 /* other doors dim while one is entered */
 .doors[data-busy='true'] .door-slot:not([data-entering='true']) > .door-link,
@@ -221,6 +262,62 @@
   display: block;
 }
 
+/* WAINSCOTING: a lower wall band with a chair rail (one per row) and a raised panel per door.
+   Visible beside and between the doors. */
+.wainscot {
+  display: none;
+  position: absolute;
+  z-index: -2;
+  left: calc(-1 * (var(--sp) + var(--shift)));
+  width: var(--rw);
+  bottom: 0;
+  height: 30%;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--rail-hi) 0 1px,
+    var(--rail) 1px calc(var(--rail-h) - 2px),
+    var(--rail-lo) calc(var(--rail-h) - 2px) var(--rail-h),
+    var(--wain) var(--rail-h)
+  );
+  transition: background 0.65s ease;
+}
+.wainscot::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--rail-h);
+  height: 9px;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.26), transparent);
+}
+.door-slot[data-sm-start] > .wainscot {
+  display: block;
+}
+.wpanel {
+  position: absolute;
+  z-index: -1;
+  left: calc(-1 * var(--el) + var(--stile));
+  right: calc(-1 * var(--er) + var(--stile));
+  bottom: calc(var(--sk) + 7px);
+  height: calc(30% - var(--sk) - var(--rail-h) - 14px);
+  pointer-events: none;
+  border-radius: 1px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(0 0 0 / 0.07));
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.28),
+    inset calc(var(--lx) * -1.5px) 1.5px 0 rgb(255 255 255 / 0.1),
+    inset calc(var(--lx) * 1.5px) -1.5px 0 rgb(0 0 0 / 0.2);
+}
+.wpanel::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  box-shadow:
+    inset calc(var(--lx) * -2px) 2px 3px rgb(0 0 0 / 0.22),
+    inset calc(var(--lx) * 1px) -1px 0 rgb(255 255 255 / 0.06);
+}
+
 /* soft contact shadow + reflection under each door */
 .contact {
   position: absolute;
@@ -241,9 +338,8 @@
   height: calc(var(--fh) * 0.8);
   pointer-events: none;
   opacity: 0.2;
-  background: linear-gradient(180deg, var(--dc), transparent);
-  filter: blur(3px);
-  clip-path: polygon(0 0, 100% 0, 92% 100%, 8% 100%);
+  background: linear-gradient(180deg, var(--wood-hi), transparent 85%);
+  clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
 }
 /* warm light spilling through an open door onto the floor */
 .spill {
@@ -263,43 +359,72 @@
   opacity: 1;
 }
 
-/* architrave: arched surround with real thickness */
+/* architrave: stepped profile with bevels, a threshold, light from the top right */
 .frame {
   position: relative;
   display: block;
-  aspect-ratio: 1 / 1.95;
-  padding: 8.5% 8.5% 0;
-  border-radius: 9999px 9999px 0 0;
-  background: linear-gradient(calc(180deg + var(--lx) * 45deg), var(--frame-hi), var(--frame) 45%, var(--frame-lo));
+  aspect-ratio: 1 / 2;
+  padding: 5.4% 7% var(--th);
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(calc(180deg + var(--lx) * 45deg), var(--frame-hi), var(--frame) 50%, var(--frame-lo));
   box-shadow:
-    inset calc(var(--lx) * -1.5px) 1.5px 0 rgb(255 255 255 / 0.32),
-    inset calc(var(--lx) * 2px) -2px 0 rgb(0 0 0 / 0.35),
-    calc(var(--lx) * -9px) 10px 16px -6px var(--cast),
+    inset calc(var(--lx) * -1.5px) 1.5px 0 rgb(255 255 255 / 0.34),
+    inset calc(var(--lx) * 1.5px) -1.5px 0 rgb(0 0 0 / 0.35),
+    calc(var(--lx) * -10px) 10px 16px -6px var(--cast),
     calc(var(--lx) * -2px) 2px 3px rgb(0 0 0 / 0.3);
   transition: background 0.65s ease;
 }
-/* the recess the door sits in */
+/* second, recessed step of the profile (bevel reversed) */
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: 2.7% 2.7% var(--th);
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(calc(180deg + var(--lx) * 45deg), var(--frame-lo), var(--frame));
+  box-shadow:
+    inset calc(var(--lx) * -2px) 2px 2px rgb(0 0 0 / 0.35),
+    inset calc(var(--lx) * 1.5px) -1.5px 0 rgb(255 255 255 / 0.22);
+}
+/* brass threshold */
+.frame::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--th);
+  background: linear-gradient(180deg, #e7cf94, #b88c46 55%, #7e5b24);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    0 1px 0 rgb(0 0 0 / 0.4);
+}
+/* the opening the leaf hangs in */
 .recess {
   display: block;
   position: relative;
   width: 100%;
   height: 100%;
   perspective: 1200px;
-  perspective-origin: 50% 85%;
-  border-radius: 9999px 9999px 0 0;
+  perspective-origin: 50% 70%;
   background: #05080a;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.55);
+}
+/* shadow where the leaf sits in the frame (static overlay above the leaf) */
+.recess::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
   box-shadow:
-    inset calc(var(--lx) * -7px) 7px 10px rgb(0 0 0 / 0.65),
-    inset calc(var(--lx) * 2px) 0 4px rgb(0 0 0 / 0.4),
-    0 0 0 1px rgb(0 0 0 / 0.5),
-    calc(var(--lx) * 1.5px) -1.5px 0 1px rgb(255 255 255 / 0.12);
+    inset calc(var(--lx) * -7px) 7px 8px -2px rgb(0 0 0 / 0.55),
+    inset calc(var(--lx) * 1.5px) 0 3px rgb(0 0 0 / 0.35);
 }
 
 /* what is behind the door: depth + warm light + brand */
 .doorway {
   position: absolute;
   inset: 0;
-  border-radius: 9999px 9999px 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -307,13 +432,24 @@
   gap: 0.5rem;
   color: #f1dcae;
   background:
-    radial-gradient(ellipse 70% 55% at 50% 42%, rgb(255 196 110 / 0.34), rgb(255 168 76 / 0.09) 52%, transparent 75%),
+    radial-gradient(ellipse 70% 42% at 50% 44%, rgb(255 196 110 / 0.34), rgb(255 168 76 / 0.09) 52%, transparent 75%),
     radial-gradient(ellipse at 50% 100%, #1a1209, #050607 70%);
   transform-origin: 50% 50%;
   will-change: transform;
 }
-.doorway svg {
-  filter: drop-shadow(0 0 7px rgb(255 200 120 / 0.55));
+.doorway::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 56%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -62%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 200 120 / 0.32), transparent 68%);
+}
+.doorway > * {
+  position: relative; /* above the glow */
 }
 .doorway-label {
   font-size: 0.56rem;
@@ -323,7 +459,7 @@
   color: #e9d3a0;
 }
 
-/* door leaf: matte paint, fine fluting, brass hardware */
+/* WALNUT LEAF: procedural grain (static image), vertical shading, raised panels */
 .leaf {
   position: absolute;
   inset: 0;
@@ -335,54 +471,89 @@
 .leaf-face {
   position: absolute;
   inset: 0;
-  border-radius: 9999px 9999px 0 0;
   backface-visibility: hidden;
-  background-color: var(--dc);
+  background-color: var(--wood);
   background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgb(0 0 0 / 0.13) 0,
-      rgb(0 0 0 / 0) 2px,
-      rgb(255 255 255 / 0.085) 3.6px,
-      rgb(255 255 255 / 0) 5px,
-      rgb(0 0 0 / 0) 7px
-    ),
-    linear-gradient(90deg, rgb(0 0 0 / 0.3), transparent 9%, transparent 91%, rgb(0 0 0 / 0.3)),
-    linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(0 0 0 / 0.04) 45%, rgb(0 0 0 / 0.26));
-  box-shadow:
-    inset 0 0 0 1px rgb(0 0 0 / 0.3),
-    inset 0 2px 3px rgb(255 255 255 / 0.12);
+    var(--grain, var(--grain-a)),
+    linear-gradient(90deg, rgb(0 0 0 / 0.36), transparent 6%, transparent 94%, rgb(0 0 0 / 0.3)),
+    linear-gradient(270deg, rgb(255 214 160 / 0.1), transparent 45%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 30%, rgb(0 0 0 / 0.24));
+  background-size: 260px 520px, 100% 100%, 100% 100%, 100% 100%;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+  /* a different grain offset per door: siblings, not clones */
+  background-position: calc(var(--gi, 0) * 47px) calc(var(--gi, 0) * -71px), 0 0, 0 0, 0 0;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.42);
 }
-/* thin inner arched panel line */
-.leaf-face::before {
+/* raised panels: groove, bevel (lit on the light side), recessed field */
+.panel {
+  position: absolute;
+  border-radius: 1px;
+  background: linear-gradient(calc(180deg + var(--lx) * 40deg), rgb(255 232 190 / 0.1), rgb(0 0 0 / 0.14));
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.5),
+    inset calc(var(--lx) * -2px) 2px 0 rgb(255 226 180 / 0.3),
+    inset calc(var(--lx) * 2px) -2px 0 rgb(0 0 0 / 0.4);
+}
+.panel::before {
   content: '';
   position: absolute;
-  inset: 5.5% 9% 3%;
-  border-radius: 9999px 9999px 0 0;
+  inset: 4px;
+  background: rgb(0 0 0 / 0.1);
   box-shadow:
-    inset 0 0 0 1px rgb(0 0 0 / 0.32),
-    0 0 0 1px rgb(255 255 255 / 0.1);
+    inset calc(var(--lx) * -2px) 2px 3px rgb(0 0 0 / 0.38),
+    inset calc(var(--lx) * 1px) -1px 0 rgb(255 226 180 / 0.1);
+}
+.p1,
+.p2,
+.p4,
+.p5 {
+  width: 35%;
+}
+.p1 {
+  left: 12%;
+  top: 4.5%;
+  height: 38.5%;
+}
+.p2 {
+  left: 53%;
+  top: 4.5%;
+  height: 38.5%;
+}
+.p3 {
+  left: 12%;
+  top: 51%;
+  width: 76%;
+  height: 12%;
+}
+.p4 {
+  left: 12%;
+  top: 68%;
+  height: 27.5%;
+}
+.p5 {
+  left: 53%;
+  top: 68%;
+  height: 27.5%;
 }
 /* the leaf darkens as it swings away from the light */
 .leaf-shade {
   position: absolute;
   inset: 0;
-  border-radius: 9999px 9999px 0 0;
   background: #000;
   opacity: 0;
   transition: opacity 0.55s ease-out;
   pointer-events: none;
 }
-/* visible door thickness on the free edge */
+/* visible door thickness on the free edge: darker walnut */
 .leaf-edge {
   position: absolute;
-  top: 26%;
+  top: 0;
   bottom: 0;
   right: -3px;
   width: 6px;
   transform: rotateY(90deg);
-  background: color-mix(in srgb, var(--dc) 42%, #000);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.35);
+  background: hsl(var(--wh) var(--ws) calc(var(--wl) - 14%));
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.4);
 }
 .door-slot[data-open='true'] .leaf {
   transform: rotateY(-75deg);
@@ -391,19 +562,19 @@
   opacity: 0.5;
 }
 
-/* brass nameplate: bevel, two screws, engraved text */
+/* brass nameplate: bevel, two screws, engraved text; sits just above the lock rail */
 .plate {
   position: absolute;
   left: 50%;
-  top: 34%;
+  top: 47%;
   width: max-content;
-  max-width: 96%;
-  transform: translateX(-50%);
-  padding: 0.34em 9px;
+  max-width: 94%;
+  transform: translate(-50%, -50%);
+  padding: 0.3em 7px;
   text-align: center;
   font-size: 0.5625rem; /* 9px: readable on phones */
   font-weight: 800;
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
   line-height: 1.15;
   text-transform: uppercase;
   white-space: nowrap;
@@ -411,31 +582,32 @@
   text-shadow: 0 1px 0 rgb(255 236 190 / 0.75);
   border-radius: 2px;
   background:
-    radial-gradient(circle at 35% 30%, #fbe9bd 0 28%, #9b7430 75%) 5px 50% / 4px 4px no-repeat,
-    radial-gradient(circle at 35% 30%, #fbe9bd 0 28%, #9b7430 75%) calc(100% - 5px) 50% / 4px 4px no-repeat,
+    radial-gradient(circle at 35% 30%, #fbe9bd 0 28%, #9b7430 75%) 2.5px 50% / 3px 3px no-repeat,
+    radial-gradient(circle at 35% 30%, #fbe9bd 0 28%, #9b7430 75%) calc(100% - 2.5px) 50% / 3px 3px no-repeat,
     linear-gradient(180deg, #f1dba6, #d3ac66 38%, #b98b46 72%, #916a2b);
   box-shadow:
     inset 1px 1px 0 rgb(255 255 255 / 0.55),
     inset -1px -1px 0 rgb(0 0 0 / 0.35),
-    calc(var(--lx) * -1px) 2px 3px rgb(0 0 0 / 0.5);
+    calc(var(--lx) * -1px) 2px 2px rgb(0 0 0 / 0.5);
 }
+/* lever on the right at lock-rail height (shadows are baked into the SVG) */
 .lever {
   position: absolute;
-  right: 7%;
+  right: 2.6%;
   top: 57%;
-  width: 38%;
+  width: 28%;
   height: auto;
   overflow: visible;
-  filter: drop-shadow(calc(var(--lx) * -2px) 3px 2px rgb(0 0 0 / 0.55));
+  transform: translateY(-50%);
 }
 .keyhole {
   position: absolute;
-  right: 9.6%;
-  top: 70%;
-  width: 7%;
+  right: 5.6%;
+  top: 67%;
+  width: 6.5%;
   height: auto;
   overflow: visible;
-  filter: drop-shadow(calc(var(--lx) * -1px) 1.5px 1px rgb(0 0 0 / 0.5));
+  transform: translateY(-50%);
 }
 
 .door-hint {
@@ -563,8 +735,34 @@
   .cornice[data-c-lg] {
     display: block;
   }
+  .scene {
+    --rail-h: 11px;
+    --stile: 6px;
+    --th: 7px;
+  }
+  .door-slot:nth-child(n) {
+    --el: calc(var(--gx) / 2);
+    --er: calc(var(--gx) / 2);
+  }
+  .door-slot[data-lg-start] {
+    --el: calc(var(--sp) + var(--shift));
+  }
+  .door-slot[data-lg-end] {
+    --er: calc(var(--sp) + var(--shift));
+  }
+  .door-slot[data-sm-start]:not([data-lg-start]) > .wainscot {
+    display: none;
+  }
+  .door-slot[data-lg-start] > .wainscot {
+    display: block;
+  }
+  .panel::before,
+  .wpanel::before {
+    inset: 6px;
+  }
   .plate {
     font-size: 0.74rem;
+    letter-spacing: 0.04em;
     padding: 0.38em 12px;
   }
   .doorway {
