@@ -1,17 +1,13 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
-import { FaArrowRight, FaFacebookF, FaGithub, FaInstagram, FaLinkedinIn, FaPhoneAlt, FaTelegramPlane, FaWhatsapp } from 'react-icons/fa'
-import { FaEnvelope, FaUserPlus } from 'react-icons/fa6'
-import { COPY, GREETINGS, LINKS, downloadVCard, type Lang } from '@/lib/content'
+import { useEffect, useState } from 'react'
+import { UserPlus } from 'lucide-react'
+import Doors from '@/components/Doors'
+import PullLamp from '@/components/ui/pull-lamp'
+import { COPY, GREETINGS, downloadVCard, type Lang } from '@/lib/content'
 import { IMAGES } from '@/lib/images'
-
-const delay = (i: number) => ({ '--i': i }) as CSSProperties
-const isWeb = (href: string) => href.startsWith('http')
-const webProps = (href: string) => (isWeb(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})
-
-const press = 'transition duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-[0.97]'
+import { applyTheme, readTheme, type Theme } from '@/lib/theme'
 
 function GreetingBubble({ avatarAlt }: { avatarAlt: string }) {
   const [i, setI] = useState(0)
@@ -23,14 +19,14 @@ function GreetingBubble({ avatarAlt }: { avatarAlt: string }) {
   }, [])
 
   return (
-    <div className="glass absolute left-4 top-4 flex items-center gap-2.5 rounded-full bg-ink/50 py-1.5 pl-1.5 pr-4 shadow-lg shadow-black/30">
+    <div className="tc inline-flex items-center gap-2.5 rounded-full border border-line bg-panel py-1.5 pl-1.5 pr-5 shadow-lg shadow-black/10">
       <Image
         src={IMAGES.avatar}
         alt={avatarAlt}
         {...IMAGES.avatarSize}
-        className="h-9 w-9 rounded-full object-cover ring-2 ring-accent/80"
+        className="h-10 w-10 rounded-full object-cover ring-2 ring-brass"
       />
-      <span className="grid text-[17px] font-bold leading-none">
+      <span className="grid text-[18px] font-bold leading-none">
         {GREETINGS.map((g, idx) => (
           <span
             key={g.text}
@@ -49,7 +45,7 @@ function GreetingBubble({ avatarAlt }: { avatarAlt: string }) {
 
 function LangToggle({ lang, onChange, label }: { lang: Lang; onChange: (l: Lang) => void; label: string }) {
   return (
-    <div role="group" aria-label={label} className="glass absolute right-4 top-4 flex rounded-full bg-ink/50 p-0.5 text-[13px] font-bold shadow-lg shadow-black/30">
+    <div role="group" aria-label={label} className="tc absolute right-4 top-4 z-20 flex rounded-full border border-line bg-panel p-0.5 text-[13px] font-bold">
       {(['fr', 'en'] as const).map((l) => (
         <button
           key={l}
@@ -58,7 +54,7 @@ function LangToggle({ lang, onChange, label }: { lang: Lang; onChange: (l: Lang)
           aria-pressed={lang === l}
           aria-label={l === 'fr' ? 'Français' : 'English'}
           onClick={() => onChange(l)}
-          className={`h-11 min-w-[44px] rounded-full px-3 uppercase transition ${lang === l ? 'bg-paper text-ink' : 'text-paper/80 hover:text-paper'}`}
+          className={`h-11 min-w-[44px] rounded-full px-3 uppercase transition ${lang === l ? 'bg-brass text-forest' : 'text-muted hover:text-ink'}`}
         >
           {l}
         </button>
@@ -67,133 +63,92 @@ function LangToggle({ lang, onChange, label }: { lang: Lang; onChange: (l: Lang)
   )
 }
 
-function ActionLink({ href, icon, children, className = '' }: { href: string; icon: ReactNode; children: ReactNode; className?: string }) {
-  return (
-    <a href={href} {...webProps(href)} className={`${press} flex h-14 items-center justify-center gap-3 rounded-2xl text-base font-bold ${className}`}>
-      {icon}
-      <span>{children}</span>
-    </a>
-  )
-}
-
 export default function Card() {
   const [lang, setLang] = useState<Lang>('fr')
+  const [theme, setTheme] = useState<Theme>('dark')
   const c = COPY[lang]
 
   useEffect(() => {
     document.documentElement.lang = lang
   }, [lang])
 
-  const socials = [
-    { label: 'LinkedIn', href: LINKS.linkedin, icon: <FaLinkedinIn /> },
-    { label: 'GitHub', href: LINKS.github, icon: <FaGithub /> },
-    { label: 'Telegram', href: LINKS.telegram, icon: <FaTelegramPlane /> },
-    { label: 'Instagram', href: LINKS.instagram, icon: <FaInstagram /> },
-    { label: 'Facebook', href: LINKS.facebook, icon: <FaFacebookF /> },
-    { label: c.email, href: LINKS.email, icon: <FaEnvelope /> },
-  ]
+  useEffect(() => {
+    setTheme(readTheme()) // value already applied before first paint by the inline script
+  }, [])
+
+  const onThemeChange = (t: Theme) => {
+    applyTheme(t)
+    setTheme(t)
+  }
 
   return (
-    <main className="relative flex min-h-dvh items-start justify-center overflow-hidden sm:items-center sm:px-4 sm:py-10">
-      {/* Desktop backdrop */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-0">
-        <div className="absolute left-1/2 top-[-18%] h-[70vh] w-[90vw] max-w-[900px] -translate-x-1/2 rounded-full bg-accent/25 blur-[120px]" />
-        <div className="absolute bottom-[-25%] right-[-10%] h-[55vh] w-[55vw] rounded-full bg-accent-deep/25 blur-[140px]" />
-      </div>
+    <main className="relative mx-auto w-full max-w-[1280px] px-4 pb-10 lg:px-6">
+      <LangToggle lang={lang} onChange={setLang} label={c.langSwitch} />
 
-      <article className="relative z-10 w-full max-w-[480px] overflow-hidden bg-ink/90 shadow-2xl shadow-black/60 sm:rounded-[32px] sm:border sm:border-white/10">
-        {/* HERO */}
-        <section className="relative">
-          <div aria-hidden className="absolute inset-x-0 top-0 h-3/4 bg-[radial-gradient(60%_60%_at_50%_30%,rgba(255,77,31,0.45),transparent_70%)]" />
-          <div className="relative aspect-square w-full [mask-image:linear-gradient(to_bottom,#000_58%,transparent_100%)]">
+      {/* HERO: single column on phones, 3 columns (text | photo | lamp) from lg */}
+      <section className="grid grid-cols-1 items-start gap-x-8 gap-y-5 lg:grid-cols-[minmax(0,1fr)_280px_260px] lg:gap-x-10 xl:grid-cols-[minmax(0,1fr)_340px_340px]">
+        {/* Lamp */}
+        <div className="mx-auto w-[200px] lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:w-full">
+          <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
+          <p className="-mt-2 text-center text-xs font-semibold text-brass-text lg:text-sm">↑ {c.pullCord}</p>
+        </div>
+
+        {/* Greeting */}
+        <div className="rise flex flex-col items-center gap-3 text-center lg:col-start-1 lg:row-start-1 lg:items-start lg:pt-14 lg:text-left" style={{ '--i': 0 } as React.CSSProperties}>
+          <GreetingBubble avatarAlt={c.avatarAlt} />
+          <p className="text-balance text-[15px] font-medium leading-snug text-muted lg:text-lg">{c.welcome}</p>
+        </div>
+
+        {/* Photo in arch frame */}
+        <div className="rise mx-auto w-[min(68vw,260px)] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-full lg:pt-14" style={{ '--i': 1 } as React.CSSProperties}>
+          <div className="aspect-[4/5] overflow-hidden rounded-t-[999px] border-[3px] border-brass bg-panel shadow-2xl shadow-black/25">
             <Image
               src={IMAGES.hero}
               alt={c.photoAlt}
               {...IMAGES.heroSize}
               priority
-              sizes="(max-width: 480px) 100vw, 480px"
-              className="h-full w-full object-cover"
+              sizes="(min-width: 1280px) 340px, (min-width: 1024px) 280px, 260px"
+              className="h-full w-full object-cover object-[50%_18%]"
             />
           </div>
-          <GreetingBubble avatarAlt={c.avatarAlt} />
-          <LangToggle lang={lang} onChange={setLang} label={c.langSwitch} />
-          <p className="absolute inset-x-5 bottom-3 text-balance text-center text-[15px] font-medium leading-snug text-paper/90">{c.welcome}</p>
-        </section>
+        </div>
 
-        <div className="px-5 pb-8 pt-4 sm:px-7">
-          {/* IDENTITY */}
-          <header className="rise text-center" style={delay(0)}>
-            <h1 className="text-[32px] font-extrabold leading-tight tracking-tight">Chouaib Ramoul</h1>
-            <p className="mx-auto mt-1.5 max-w-[22rem] text-balance text-[17px] font-semibold leading-snug text-accent">{c.title}</p>
-            <span className="glass mt-3 inline-block rounded-full px-4 py-1.5 text-[13px] font-semibold text-paper/90">{c.badge}</span>
-            <p className="mx-auto mt-4 max-w-[26rem] text-balance text-[15px] leading-relaxed text-paper/75">{c.pitch}</p>
-            <ul className="mt-4 flex flex-wrap justify-center gap-1.5">
-              {c.chips.map((chip) => (
-                <li key={chip} className="rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-xs font-semibold text-paper/90">
-                  {chip}
-                </li>
-              ))}
-            </ul>
-          </header>
-
-          {/* TOP ACTIONS */}
-          <div className="mt-7 flex flex-col gap-3">
-            <div className="rise" style={delay(1)}>
-              <button
-                type="button"
-                onClick={() => downloadVCard(lang)}
-                className={`${press} flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-accent-gradient text-[17px] font-bold text-white shadow-lg shadow-accent/25 [text-shadow:0_1px_2px_rgba(0,0,0,0.25)]`}
-              >
-                <FaUserPlus aria-hidden className="text-lg" />
-                {c.save}
-              </button>
-            </div>
-            <div className="rise" style={delay(2)}>
-              <ActionLink href={LINKS.whatsapp} icon={<FaWhatsapp aria-hidden className="text-2xl text-[#25D366]" />} className="glass w-full">
-                {c.whatsapp}
-              </ActionLink>
-            </div>
-            <div className="rise" style={delay(3)}>
-              <ActionLink href={LINKS.call} icon={<FaPhoneAlt aria-hidden className="text-lg text-accent" />} className="glass w-full">
-                {c.call}
-              </ActionLink>
-            </div>
-          </div>
-
-          {/* SOCIALS */}
-          <h2 className="rise mb-3 mt-8 text-center text-xs font-bold uppercase tracking-[0.18em] text-paper/60" style={delay(4)}>
-            {c.followMe}
-          </h2>
-          <ul className="grid grid-cols-3 gap-3">
-            {socials.map((s, idx) => (
-              <li key={s.label} className="rise" style={delay(5 + idx)}>
-                <a
-                  href={s.href}
-                  {...webProps(s.href)}
-                  aria-label={s.label}
-                  className={`${press} glass group flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl px-1 py-3 hover:border-accent/50 hover:bg-white/10`}
-                >
-                  <span aria-hidden className="text-2xl text-paper transition group-hover:text-accent">
-                    {s.icon}
-                  </span>
-                  <span className="text-[13px] font-semibold text-paper/85">{s.label}</span>
-                </a>
+        {/* Identity */}
+        <header className="rise text-center lg:col-start-1 lg:row-start-2 lg:self-start lg:text-left" style={{ '--i': 2 } as React.CSSProperties}>
+          <h1 className="text-[34px] font-extrabold leading-tight tracking-tight lg:text-5xl">Chouaib Ramoul</h1>
+          <p className="mx-auto mt-1.5 max-w-[22rem] text-balance text-[17px] font-semibold leading-snug text-brass-text lg:mx-0 lg:max-w-none lg:text-xl">{c.title}</p>
+          <span className="tc mt-3 inline-block rounded-full border border-line bg-panel px-4 py-1.5 text-[13px] font-semibold">{c.badge}</span>
+          <p className="mx-auto mt-4 max-w-[26rem] text-balance text-[15px] leading-relaxed text-muted lg:mx-0 lg:max-w-md lg:text-[16px]">{c.pitch}</p>
+          <ul className="mt-4 flex flex-wrap justify-center gap-1.5 lg:justify-start">
+            {c.chips.map((chip) => (
+              <li key={chip} className="tc rounded-full border border-brass/50 px-3 py-1 text-xs font-semibold text-brass-text">
+                {chip}
               </li>
             ))}
           </ul>
+          <button
+            type="button"
+            onClick={() => downloadVCard(lang)}
+            className="mt-6 inline-flex h-14 w-full max-w-sm items-center justify-center gap-3 rounded-2xl bg-brass px-8 text-[17px] font-bold text-forest shadow-lg shadow-black/20 transition duration-200 hover:bg-brass-hi motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-[0.97] lg:w-auto"
+          >
+            <UserPlus aria-hidden className="h-5 w-5" />
+            {c.save}
+          </button>
+        </header>
+      </section>
 
-          {/* PORTFOLIO */}
-          <div className="rise mt-5" style={delay(11)}>
-            <ActionLink href={LINKS.portfolio} icon={<FaArrowRight aria-hidden className="order-2 text-sm" />} className="w-full bg-paper text-ink">
-              {c.portfolio}
-            </ActionLink>
-          </div>
-
-          <footer className="rise mt-8 text-center text-xs text-paper/55" style={delay(12)}>
-            © 2026 Ramoul Chouaib
-          </footer>
+      {/* CORRIDOR: wall + floor + doors */}
+      <section aria-labelledby="doors-title" className="relative mt-12 lg:mt-16">
+        <h2 id="doors-title" className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] text-muted">
+          {c.followMe}
+        </h2>
+        <div className="wall relative rounded-3xl border border-line px-3 pb-8 pt-8 lg:px-10 lg:pt-12">
+          <div aria-hidden className="pool pointer-events-none absolute inset-x-0 top-0 h-48 rounded-t-3xl lg:inset-x-auto lg:right-10 lg:h-[420px] lg:w-[520px]" />
+          <Doors lang={lang} />
         </div>
-      </article>
+      </section>
+
+      <footer className="mt-10 text-center text-xs text-muted">© 2026 Ramoul Chouaib</footer>
     </main>
   )
 }

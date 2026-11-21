@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import { COPY } from '@/lib/content'
 import { IMAGES, SITE_URL } from '@/lib/images'
+import { THEME_INIT_SCRIPT } from '@/lib/theme'
 import './globals.css'
 
 const jakarta = Plus_Jakarta_Sans({
@@ -50,13 +51,19 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0E0E10',
-  colorScheme: 'dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f0e7d6' },
+    { media: '(prefers-color-scheme: dark)', color: '#101b17' },
+  ],
+  colorScheme: 'dark light',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={jakarta.variable}>
+    <html lang="fr" data-theme="dark" className={jakarta.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   )
