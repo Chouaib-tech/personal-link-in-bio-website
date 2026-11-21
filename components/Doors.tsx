@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Mous
 import { createPortal } from 'react-dom'
 import { Globe, Mail, Phone } from 'lucide-react'
 import { BrandIcon, type BrandName } from '@/components/BrandIcons'
-import { COPY, LINKS, type Lang } from '@/lib/content'
+import { COPY, GMAIL_COMPOSE, LINKS, type Lang } from '@/lib/content'
 
 const ICON = 'h-7 w-7 sm:h-9 sm:w-9 lg:h-12 lg:w-12'
 
@@ -240,7 +240,7 @@ export default function Doors({ lang }: { lang: Lang }) {
   )
 
   const go = useCallback(
-    (d: DoorDef) => {
+    (d: DoorDef, href: string) => {
       if (busy.current) return
       busy.current = true
       scrollY0.current = window.scrollY
@@ -263,13 +263,13 @@ export default function Doors({ lang }: { lang: Lang }) {
         el.setAttribute('data-push', 'true')
       }
 
-      const web = isWeb(d.href)
+      const web = isWeb(href)
       timers.current.push(
         window.setTimeout(
           () => {
-            if (web) return openNewTab(d.href)
-            window.location.assign(d.href)
-            if (staysAlive(d.href)) timers.current.push(window.setTimeout(reverse, ALIVE_RESET))
+            if (web) return openNewTab(href)
+            window.location.assign(href)
+            if (staysAlive(href)) timers.current.push(window.setTimeout(reverse, ALIVE_RESET))
           },
           reduced ? REDUCED_NAVIGATE_AT : web ? OPEN_TAB_AT : NAVIGATE_AT,
         ),
@@ -285,7 +285,8 @@ export default function Doors({ lang }: { lang: Lang }) {
     e.preventDefault()
     const touch = (!fine || lastPointer.current === 'touch') && e.detail !== 0
     if (touch && openKey !== d.key) return setOpenKey(d.key) // 1st tap: open
-    go(d) // desktop click / Enter / 2nd tap
+    // desktop: no mail app is guaranteed, so the email door opens Gmail compose; touch keeps mailto:
+    go(d, d.key === 'email' && !touch ? GMAIL_COMPOSE : d.href) // desktop click / Enter / 2nd tap
   }
 
   return (

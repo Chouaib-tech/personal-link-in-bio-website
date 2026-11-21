@@ -16,6 +16,9 @@ export const LINKS = {
 export const ABOUT_FR = ''
 export const ABOUT_EN = ''
 
+/** Desktop browsers often have no mail app for mailto:, so the email door opens Gmail compose there. */
+export const GMAIL_COMPOSE = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(LINKS.email.replace('mailto:', ''))}`
+
 export const GREETINGS = [
   { text: 'Hello', lang: 'en', dir: 'ltr' },
   { text: 'Salut', lang: 'fr', dir: 'ltr' },
