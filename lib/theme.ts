@@ -1,5 +1,5 @@
 export type Theme = 'light' | 'dark'
-export const THEME_KEY = 'theme'
+export const THEME_KEY = 'theme-v2' // bumped: ignores older saved choices so everyone starts on the green theme
 
 // Runs inline in <head> before first paint: saved choice, otherwise dark (lamp off).
 export const THEME_INIT_SCRIPT = `(function(){var d=document.documentElement,t;try{t=localStorage.getItem('${THEME_KEY}')}catch(e){}d.setAttribute('data-theme',t==='light'?'light':'dark')})()`
