@@ -1,8 +1,8 @@
 export type Theme = 'light' | 'dark'
 export const THEME_KEY = 'theme'
 
-// Runs inline in <head> before first paint: saved choice > system preference > dark.
-export const THEME_INIT_SCRIPT = `(function(){var d=document.documentElement,t;try{t=localStorage.getItem('${THEME_KEY}')}catch(e){}if(t!=='light'&&t!=='dark'){try{t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}catch(e){t='dark'}}d.setAttribute('data-theme',t)})()`
+// Runs inline in <head> before first paint: saved choice, otherwise dark (lamp off).
+export const THEME_INIT_SCRIPT = `(function(){var d=document.documentElement,t;try{t=localStorage.getItem('${THEME_KEY}')}catch(e){}d.setAttribute('data-theme',t==='light'?'light':'dark')})()`
 
 export function readTheme(): Theme {
   return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'

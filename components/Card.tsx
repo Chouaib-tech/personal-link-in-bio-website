@@ -2,10 +2,10 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { UserPlus } from 'lucide-react'
 import Doors from '@/components/Doors'
+import Socials from '@/components/Socials'
 import PullLamp from '@/components/ui/pull-lamp'
-import { COPY, GREETINGS, downloadVCard, type Lang } from '@/lib/content'
+import { COPY, GREETINGS, type Lang } from '@/lib/content'
 import { IMAGES } from '@/lib/images'
 import { applyTheme, readTheme, type Theme } from '@/lib/theme'
 
@@ -90,7 +90,7 @@ export default function Card() {
         {/* Lamp */}
         <div className="mx-auto w-[200px] lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:w-full">
           <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
-          <p className="-mt-2 text-center text-xs font-semibold text-brass-text lg:text-sm">↑ {c.pullCord}</p>
+          <p className="mx-auto -mt-2 max-w-[15rem] text-balance text-center text-xs font-semibold leading-snug text-brass-text lg:max-w-[18rem] lg:text-sm">{c.pullCord}</p>
         </div>
 
         {/* Greeting */}
@@ -101,54 +101,49 @@ export default function Card() {
 
         {/* Photo in arch frame */}
         <div className="rise mx-auto w-[min(68vw,260px)] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-full lg:pt-14" style={{ '--i': 1 } as React.CSSProperties}>
-          <div className="aspect-[4/5] overflow-hidden rounded-t-[999px] border-[3px] border-brass bg-panel shadow-2xl shadow-black/25">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-t-[999px] border-[3px] border-brass bg-panel shadow-[0_24px_48px_-20px_rgb(0_0_0/0.55)]">
             <Image
               src={IMAGES.hero}
               alt={c.photoAlt}
               {...IMAGES.heroSize}
               priority
               sizes="(min-width: 1280px) 340px, (min-width: 1024px) 280px, 260px"
-              className="h-full w-full object-cover object-[50%_18%]"
+              className="h-full w-full object-cover"
+              style={{ objectPosition: IMAGES.heroFocus }}
             />
+            <div aria-hidden className="pointer-events-none absolute inset-[7px] rounded-t-[999px] border border-brass/55" />
           </div>
         </div>
 
         {/* Identity */}
         <header className="rise text-center lg:col-start-1 lg:row-start-2 lg:self-start lg:text-left" style={{ '--i': 2 } as React.CSSProperties}>
-          <h1 className="text-[34px] font-extrabold leading-tight tracking-tight lg:text-5xl">Chouaib Ramoul</h1>
-          <p className="mx-auto mt-1.5 max-w-[22rem] text-balance text-[17px] font-semibold leading-snug text-brass-text lg:mx-0 lg:max-w-none lg:text-xl">{c.title}</p>
-          <span className="tc mt-3 inline-block rounded-full border border-line bg-panel px-4 py-1.5 text-[13px] font-semibold">{c.badge}</span>
+          <h1 className="font-display text-[40px] font-semibold leading-[1.05] tracking-tight lg:text-[58px]">Chouaib Ramoul</h1>
+          <p className="mx-auto mt-2 max-w-[22rem] text-balance text-[16px] font-semibold leading-snug text-brass-text lg:mx-0 lg:max-w-none lg:text-lg">{c.title}</p>
+          <span className="tc mt-4 inline-block rounded-full border border-line bg-panel px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em]">{c.badge}</span>
           <p className="mx-auto mt-4 max-w-[26rem] text-balance text-[15px] leading-relaxed text-muted lg:mx-0 lg:max-w-md lg:text-[16px]">{c.pitch}</p>
-          <ul className="mt-4 flex flex-wrap justify-center gap-1.5 lg:justify-start">
+          <ul className="mt-4 flex flex-wrap justify-center gap-1.5 pb-2 lg:justify-start">
             {c.chips.map((chip) => (
-              <li key={chip} className="tc rounded-full border border-brass/50 px-3 py-1 text-xs font-semibold text-brass-text">
+              <li key={chip} className="tc rounded-full border border-brass/40 px-3 py-1 text-xs font-semibold text-brass-text">
                 {chip}
               </li>
             ))}
           </ul>
-          <button
-            type="button"
-            onClick={() => downloadVCard(lang)}
-            className="mt-6 inline-flex h-14 w-full max-w-sm items-center justify-center gap-3 rounded-2xl bg-brass px-8 text-[17px] font-bold text-forest shadow-lg shadow-black/20 transition duration-200 hover:bg-brass-hi motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-[0.97] lg:w-auto"
-          >
-            <UserPlus aria-hidden className="h-5 w-5" />
-            {c.save}
-          </button>
         </header>
       </section>
 
-      {/* CORRIDOR: wall + floor + doors */}
-      <section aria-labelledby="doors-title" className="relative mt-12 lg:mt-16">
-        <h2 id="doors-title" className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] text-muted">
-          {c.followMe}
+      {/* DOORS: one continuous wall, then social buttons */}
+      <section aria-labelledby="doors-title" className="mt-10 lg:mt-14">
+        <div aria-hidden className="hairline mb-8" />
+        <h2 id="doors-title" className="mb-5 text-center font-display text-2xl font-semibold tracking-tight lg:text-3xl">
+          {c.doorsTitle}
         </h2>
-        <div className="wall relative rounded-3xl border border-line px-3 pb-8 pt-8 lg:px-10 lg:pt-12">
-          <div aria-hidden className="pool pointer-events-none absolute inset-x-0 top-0 h-48 rounded-t-3xl lg:inset-x-auto lg:right-10 lg:h-[420px] lg:w-[520px]" />
+        <div className="scene rise" style={{ '--i': 4 } as React.CSSProperties}>
           <Doors lang={lang} />
         </div>
+        <Socials lang={lang} />
       </section>
 
-      <footer className="mt-10 text-center text-xs text-muted">© 2026 Ramoul Chouaib</footer>
+      <footer className="mt-12 text-center text-xs text-muted">© 2026 Ramoul Chouaib</footer>
     </main>
   )
 }

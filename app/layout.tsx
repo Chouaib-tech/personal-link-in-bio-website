@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Plus_Jakarta_Sans } from 'next/font/google'
+import { Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google'
 import { COPY } from '@/lib/content'
 import { IMAGES, SITE_URL } from '@/lib/images'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
@@ -9,6 +9,13 @@ const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-jakarta',
+})
+
+const display = Playfair_Display({
+  subsets: ['latin'],
+  weight: '600',
+  display: 'swap',
+  variable: '--font-display',
 })
 
 const TITLE = 'Chouaib Ramoul - Full-Stack Developer'
@@ -60,7 +67,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" data-theme="dark" className={jakarta.variable} suppressHydrationWarning>
+    <html lang="fr" data-theme="dark" className={`${jakarta.variable} ${display.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>

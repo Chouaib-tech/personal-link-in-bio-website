@@ -17,6 +17,7 @@ const config: Config = {
         forest: '#101b17',
       },
       fontFamily: {
+        display: ['var(--font-display)', 'Georgia', 'serif'],
         sans: ['var(--font-jakarta)', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
     },

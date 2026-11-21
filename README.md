@@ -3,7 +3,7 @@
 Premium mobile-first link-in-bio page (Next.js 14 static export, Tailwind, react-icons), opened from an NFC card. Deployed on Vercel.
 
 ## Edit
-- Links, FR/EN copy, vCard: `lib/content.ts`
+- Links and FR/EN copy: `lib/content.ts`
 - Image paths (single place): `lib/images.ts`
 - Swap photos: replace `source-images/hero.png` and `source-images/avatar.jpg`, then `python3 scripts/optimize-images.py` (needs Pillow). The 1200x630 social card `public/images/og.jpg` is a separate file to replace.
 - Theme tokens: `tailwind.config.ts`
