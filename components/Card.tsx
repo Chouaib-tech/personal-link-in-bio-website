@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Doors from '@/components/Doors'
 import StatusRow from '@/components/StatusRow'
 import PullLamp from '@/components/ui/pull-lamp'
@@ -68,14 +68,19 @@ export default function Card() {
   const [theme, setTheme] = useState<Theme>('dark')
   const [fine, setFine] = useState(true) // (hover: hover) and (pointer: fine), same query as the doors
   const c = COPY[lang]
+  // The lamp toggles on pointer-up AND on a click with detail 0 (its keyboard path). Some phone browsers send
+  // detail 0 for finger taps too, which toggled twice (looked dead). Only let clicks through after a key press.
+  const lampKey = useRef(false)
   const about = lang === 'fr' ? ABOUT_FR : ABOUT_EN
 
   useEffect(() => {
     const mq = window.matchMedia('(hover: hover) and (pointer: fine)')
     const sync = () => setFine(mq.matches)
     sync()
-    mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
+    // Safari < 14 only has addListener
+    if (mq.addEventListener) mq.addEventListener('change', sync)
+    else mq.addListener(sync)
+    return () => (mq.removeEventListener ? mq.removeEventListener('change', sync) : mq.removeListener(sync))
   }, [])
 
   useEffect(() => {
@@ -120,7 +125,14 @@ export default function Card() {
         </div>
 
         {/* Lamp (theme switch) */}
-        <div className="col-start-2 row-start-2 w-full max-w-[230px] justify-self-center lg:col-start-3 lg:row-span-4 lg:row-start-1 lg:max-w-none">
+        <div
+          className="col-start-2 row-start-2 w-full max-w-[230px] justify-self-center lg:col-start-3 lg:row-span-4 lg:row-start-1 lg:max-w-none"
+          onKeyDownCapture={() => (lampKey.current = true)}
+          onPointerDownCapture={() => (lampKey.current = false)}
+          onClickCapture={(e) => {
+            if (!lampKey.current) e.stopPropagation()
+          }}
+        >
           <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
           <p className="mx-auto -mt-2 max-w-[15rem] text-balance text-center text-[11px] font-semibold leading-snug text-brass-text sm:text-xs lg:max-w-[18rem] lg:text-sm">{c.pullCord}</p>
         </div>

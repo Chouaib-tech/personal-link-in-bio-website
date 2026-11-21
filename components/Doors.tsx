@@ -28,6 +28,10 @@ function buildDoors(lang: Lang): DoorDef[] {
   ]
 }
 
+// MediaQueryList.addEventListener does not exist on Safari < 14
+const listen = (mq: MediaQueryList, fn: () => void) => (mq.addEventListener ? mq.addEventListener('change', fn) : mq.addListener(fn))
+const unlisten = (mq: MediaQueryList, fn: () => void) => (mq.removeEventListener ? mq.removeEventListener('change', fn) : mq.removeListener(fn))
+
 const isWeb = (href: string) => href.startsWith('http')
 const staysAlive = (href: string) => href.startsWith('tel:') || href.startsWith('mailto:')
 
@@ -100,6 +104,7 @@ export default function Doors({ lang }: { lang: Lang }) {
   const [reduced, setReduced] = useState(false)
   const listRef = useRef<HTMLUListElement>(null)
   const lastPointer = useRef<string>('mouse')
+  const viaKeyboard = useRef(false) // Enter/Space on a focused door (NOT click.detail: some phones send 0 for taps)
   const busy = useRef(false)
   const timers = useRef<number[]>([])
   const scrollY0 = useRef<number | null>(null)
@@ -163,13 +168,13 @@ export default function Doors({ lang }: { lang: Lang }) {
       setReduced(motionMq.matches)
     }
     sync()
-    hoverMq.addEventListener('change', sync)
-    motionMq.addEventListener('change', sync)
+    listen(hoverMq, sync)
+    listen(motionMq, sync)
     // Back button / bfcache: restore every door, the camera and the scroll position
     window.addEventListener('pageshow', reset)
     return () => {
-      hoverMq.removeEventListener('change', sync)
-      motionMq.removeEventListener('change', sync)
+      unlisten(hoverMq, sync)
+      unlisten(motionMq, sync)
       window.removeEventListener('pageshow', reset)
       clearTimers()
       detachReturn.current?.()
@@ -284,7 +289,7 @@ export default function Doors({ lang }: { lang: Lang }) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
     if (busy.current) return e.preventDefault()
     e.preventDefault()
-    const touch = (!fine || lastPointer.current === 'touch') && e.detail !== 0
+    const touch = (!fine || lastPointer.current === 'touch') && !viaKeyboard.current
     if (touch && openKey !== d.key) return setOpenKey(d.key) // 1st tap: open
     // desktop: no mail app is guaranteed, so the email door opens Gmail compose; touch keeps mailto:
     go(d, d.key === 'email' && !touch ? GMAIL_COMPOSE : d.href) // desktop click / Enter / 2nd tap
@@ -323,7 +328,17 @@ export default function Doors({ lang }: { lang: Lang }) {
                 {...(isWeb(d.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 className="door-link block rounded-sm focus-visible:ring-offset-4"
                 style={{ zIndex: isOpen || isEntering ? 10 : undefined }}
-                onPointerDown={(e) => (lastPointer.current = e.pointerType)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') viaKeyboard.current = true
+                }}
+                onTouchStart={() => {
+                  lastPointer.current = 'touch'
+                  viaKeyboard.current = false
+                }}
+                onPointerDown={(e) => {
+                  lastPointer.current = e.pointerType || lastPointer.current
+                  viaKeyboard.current = false
+                }}
                 onPointerEnter={(e) => {
                   if (!busy.current && e.pointerType !== 'touch' && fine) setOpenKey(d.key)
                 }}
@@ -331,7 +346,12 @@ export default function Doors({ lang }: { lang: Lang }) {
                   if (!busy.current && e.pointerType !== 'touch' && fine) setOpenKey((k) => (k === d.key ? null : k))
                 }}
                 onFocus={(e) => {
-                  if (!busy.current && e.currentTarget.matches(':focus-visible')) setOpenKey(d.key)
+                  if (busy.current) return
+                  let visible = false
+                  try {
+                    visible = e.currentTarget.matches(':focus-visible')
+                  } catch {} // older Safari has no :focus-visible
+                  if (visible) setOpenKey(d.key)
                 }}
                 onBlur={() => {
                   if (!busy.current) setOpenKey((k) => (k === d.key ? null : k))
