@@ -26,7 +26,6 @@ export const COPY = {
     pitch:
       "Je conçois et développe des produits web et mobiles sécurisés et performants, de l'interface à l'infrastructure.",
     chips: ['Full-Stack', 'Mobile', 'Cybersécurité', 'Réseaux'],
-    followMe: 'Retrouvez-moi aussi',
     doorsTitle: 'Entrer en contact',
     open: 'Ouvrir',
     tapAgain: 'Touchez encore pour entrer',
@@ -47,7 +46,6 @@ export const COPY = {
     pitch:
       'I design and build secure, high-performance web and mobile products, from the interface to the infrastructure.',
     chips: ['Full-Stack', 'Mobile', 'Cybersecurity', 'Networks'],
-    followMe: 'Also find me',
     doorsTitle: 'Get in touch',
     open: 'Open',
     tapAgain: 'Tap again to enter',

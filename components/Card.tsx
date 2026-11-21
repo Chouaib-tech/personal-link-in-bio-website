@@ -3,7 +3,6 @@
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import Doors from '@/components/Doors'
-import Socials from '@/components/Socials'
 import PullLamp from '@/components/ui/pull-lamp'
 import { COPY, GREETINGS, type Lang } from '@/lib/content'
 import { IMAGES } from '@/lib/images'
@@ -140,7 +139,6 @@ export default function Card() {
         <div className="scene rise" style={{ '--i': 4 } as React.CSSProperties}>
           <Doors lang={lang} />
         </div>
-        <Socials lang={lang} />
       </section>
 
       <footer className="mt-12 text-center text-xs text-muted">© 2026 Ramoul Chouaib</footer>

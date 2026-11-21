@@ -1,26 +1,46 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Globe, Mail, Phone } from 'lucide-react'
-import { BrandIcon } from '@/components/BrandIcons'
+import { BrandIcon, type BrandName } from '@/components/BrandIcons'
 import { COPY, LINKS, type Lang } from '@/lib/content'
 
-const ICON = 'h-9 w-9 lg:h-12 lg:w-12'
+const ICON = 'h-7 w-7 sm:h-9 sm:w-9 lg:h-12 lg:w-12'
 
-// Painted, slightly desaturated: mint, cobalt, orange, deep violet
+// Painted, slightly desaturated: mint, cobalt, orange, deep violet.
+// Cycled by index, so no two neighbours match (3-column phone grid or 5/4 desktop rows).
+const COLORS = ['#5f9c86', '#34599a', '#c06a35', '#583f7c']
+
 type DoorDef = { key: string; label: string; href: string; icon: ReactNode; color: string }
 
-const isWeb = (href: string) => href.startsWith('http')
+const brand = (name: BrandName) => <BrandIcon name={name} className={ICON} />
+const stroke = { 'aria-hidden': true, className: ICON, strokeWidth: 1.75 } as const
 
 function buildDoors(lang: Lang): DoorDef[] {
   const c = COPY[lang]
-  return [
-    { key: 'whatsapp', label: 'WhatsApp', href: LINKS.whatsapp, color: '#5f9c86', icon: <BrandIcon name="WhatsApp" className={ICON} /> },
-    { key: 'call', label: c.shortCall, href: LINKS.call, color: '#34599a', icon: <Phone aria-hidden className={ICON} strokeWidth={1.75} /> },
-    { key: 'email', label: c.shortEmail, href: LINKS.email, color: '#c06a35', icon: <Mail aria-hidden className={ICON} strokeWidth={1.75} /> },
-    { key: 'portfolio', label: c.shortPortfolio, href: LINKS.portfolio, color: '#583f7c', icon: <Globe aria-hidden className={ICON} strokeWidth={1.75} /> },
+  const list: Omit<DoorDef, 'color'>[] = [
+    { key: 'whatsapp', label: 'WhatsApp', href: LINKS.whatsapp, icon: brand('WhatsApp') },
+    { key: 'call', label: c.shortCall, href: LINKS.call, icon: <Phone {...stroke} /> },
+    { key: 'email', label: c.shortEmail, href: LINKS.email, icon: <Mail {...stroke} /> },
+    { key: 'portfolio', label: c.shortPortfolio, href: LINKS.portfolio, icon: <Globe {...stroke} /> },
+    { key: 'linkedin', label: 'LinkedIn', href: LINKS.linkedin, icon: brand('LinkedIn') },
+    { key: 'github', label: 'GitHub', href: LINKS.github, icon: brand('GitHub') },
+    { key: 'telegram', label: 'Telegram', href: LINKS.telegram, icon: brand('Telegram') },
+    { key: 'instagram', label: 'Instagram', href: LINKS.instagram, icon: brand('Instagram') },
+    { key: 'facebook', label: 'Facebook', href: LINKS.facebook, icon: brand('Facebook') },
   ]
+  return list.map((d, i) => ({ ...d, color: COLORS[i % COLORS.length] }))
 }
+
+const isWeb = (href: string) => href.startsWith('http')
+const staysAlive = (href: string) => href.startsWith('tel:') || href.startsWith('mailto:')
+
+// Timeline (ms): push 250 -> 950, overlay 600 -> 950, navigate at 1000
+const NAVIGATE_AT = 1000
+const REDUCED_NAVIGATE_AT = 150
+const PUSH_SCALE = 14
+const SCROLL_KEYS = [' ', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End']
 
 /** Shared brass gradients, referenced by every lever / keyhole (declared once). */
 function BrassDefs() {
@@ -70,11 +90,62 @@ export default function Doors({ lang }: { lang: Lang }) {
   const c = COPY[lang]
   const doors = buildDoors(lang)
   const [openKey, setOpenKey] = useState<string | null>(null)
-  const [enter, setEnter] = useState<{ key: string; scale: number } | null>(null)
+  const [enter, setEnter] = useState<{ key: string } | null>(null)
   const [fine, setFine] = useState(true) // (hover: hover) and (pointer: fine)
   const [reduced, setReduced] = useState(false)
+  const listRef = useRef<HTMLUListElement>(null)
   const lastPointer = useRef<string>('mouse')
-  const timer = useRef<number>()
+  const busy = useRef(false)
+  const timers = useRef<number[]>([])
+  const scrollY0 = useRef<number | null>(null)
+
+  const clearTimers = () => {
+    timers.current.forEach((t) => window.clearTimeout(t))
+    timers.current = []
+  }
+
+  const lockScroll = useCallback((on: boolean) => {
+    const stop = (e: Event) => e.preventDefault()
+    const stopKeys = (e: KeyboardEvent) => {
+      if (SCROLL_KEYS.includes(e.key)) e.preventDefault()
+    }
+    const w = window as unknown as { __doorLock?: () => void }
+    w.__doorLock?.()
+    w.__doorLock = undefined
+    if (!on) return
+    window.addEventListener('wheel', stop, { passive: false })
+    window.addEventListener('touchmove', stop, { passive: false })
+    window.addEventListener('keydown', stopKeys)
+    w.__doorLock = () => {
+      window.removeEventListener('wheel', stop)
+      window.removeEventListener('touchmove', stop)
+      window.removeEventListener('keydown', stopKeys)
+    }
+  }, [])
+
+  const scene = () => listRef.current?.closest<HTMLElement>('.scene') ?? null
+
+  /** Instant reset: no transition, overlay removed, doors closed. */
+  const reset = useCallback(() => {
+    clearTimers()
+    busy.current = false
+    const el = scene()
+    if (el) {
+      el.style.transition = 'none'
+      el.removeAttribute('data-push')
+      el.style.transformOrigin = ''
+      el.style.removeProperty('--tx')
+      el.style.removeProperty('--ty')
+      el.style.removeProperty('--s')
+      void el.offsetHeight // commit the cleared transform before transitions come back
+      el.style.transition = ''
+    }
+    lockScroll(false)
+    setEnter(null)
+    setOpenKey(null)
+    if (scrollY0.current !== null) window.scrollTo(0, scrollY0.current)
+    scrollY0.current = null
+  }, [lockScroll])
 
   useEffect(() => {
     const hoverMq = window.matchMedia('(hover: hover) and (pointer: fine)')
@@ -86,70 +157,100 @@ export default function Doors({ lang }: { lang: Lang }) {
     sync()
     hoverMq.addEventListener('change', sync)
     motionMq.addEventListener('change', sync)
-
-    // Back button / bfcache: restore every door to its initial state
-    const reset = () => {
-      window.clearTimeout(timer.current)
-      setOpenKey(null)
-      setEnter(null)
-    }
+    // Back button / bfcache: restore every door, the camera and the scroll position
     window.addEventListener('pageshow', reset)
     return () => {
       hoverMq.removeEventListener('change', sync)
       motionMq.removeEventListener('change', sync)
       window.removeEventListener('pageshow', reset)
-      window.clearTimeout(timer.current)
+      clearTimers()
+      lockScroll(false)
     }
-  }, [])
+  }, [reset, lockScroll])
 
   // Tap outside closes the open door
   useEffect(() => {
     if (!openKey) return
     const onDown = (e: Event) => {
-      if (!(e.target as Element).closest?.('[data-door]')) setOpenKey(null)
+      if (!busy.current && !(e.target as Element).closest?.('[data-door]')) setOpenKey(null)
     }
     document.addEventListener('pointerdown', onDown)
     return () => document.removeEventListener('pointerdown', onDown)
   }, [openKey])
 
+  /** tel:/mailto: keep the page alive: zoom back out and re-enable everything. */
+  const reverse = useCallback(() => {
+    const el = scene()
+    busy.current = false
+    setEnter(null)
+    setOpenKey(null)
+    el?.removeAttribute('data-push') // base transition plays the camera back
+    timers.current.push(
+      window.setTimeout(() => {
+        if (el) {
+          el.style.transformOrigin = ''
+          el.style.removeProperty('--tx')
+          el.style.removeProperty('--ty')
+          el.style.removeProperty('--s')
+        }
+        lockScroll(false)
+        scrollY0.current = null
+      }, 650),
+    )
+  }, [lockScroll])
+
   const go = useCallback(
     (d: DoorDef) => {
-      if (reduced) {
-        setEnter({ key: d.key, scale: 1 })
-        timer.current = window.setTimeout(() => window.location.assign(d.href), 150)
-        return
+      if (busy.current) return
+      busy.current = true
+      scrollY0.current = window.scrollY
+      lockScroll(true)
+      setOpenKey(d.key) // force it open if it is still swinging
+      setEnter({ key: d.key })
+
+      const el = scene()
+      const doorway = document.getElementById(`doorway-${d.key}`)
+      if (!reduced && el && doorway) {
+        // Camera push: origin = doorway centre (scene coords), translate it to the viewport centre
+        const sr = el.getBoundingClientRect()
+        const dr = doorway.getBoundingClientRect()
+        const dx = dr.left + dr.width / 2
+        const dy = dr.top + dr.height / 2
+        el.style.transformOrigin = `${dx - sr.left}px ${dy - sr.top}px`
+        el.style.setProperty('--tx', `${window.innerWidth / 2 - dx}px`)
+        el.style.setProperty('--ty', `${window.innerHeight / 2 - dy}px`)
+        el.style.setProperty('--s', String(PUSH_SCALE))
+        el.setAttribute('data-push', 'true')
       }
-      const el = document.getElementById(`doorway-${d.key}`)
-      let scale = 7
-      if (el) {
-        const r = el.getBoundingClientRect()
-        const cx = r.left + r.width / 2
-        const cy = r.top + r.height / 2
-        const sx = (Math.max(cx, window.innerWidth - cx) * 2) / r.width
-        const sy = (Math.max(cy, window.innerHeight - cy) * 2) / r.height
-        scale = Math.max(6, Math.min(Math.max(sx, sy) * 1.05, 14))
-      }
-      setEnter({ key: d.key, scale })
-      timer.current = window.setTimeout(() => window.location.assign(d.href), 600)
+
+      timers.current.push(
+        window.setTimeout(
+          () => {
+            window.location.assign(d.href)
+            if (staysAlive(d.href)) timers.current.push(window.setTimeout(reverse, 1500))
+          },
+          reduced ? REDUCED_NAVIGATE_AT : NAVIGATE_AT,
+        ),
+      )
     },
-    [reduced],
+    [reduced, reverse, lockScroll],
   )
 
   const onClick = (e: MouseEvent<HTMLAnchorElement>, d: DoorDef) => {
-    if (enter) return e.preventDefault()
-    if (e.detail === 0) return // keyboard / assistive tech: plain link activation
-    const touch = !fine || lastPointer.current === 'touch'
-    if (!touch) return // mouse: door already open on hover, click follows the link
+    // Ctrl / Cmd / Shift / Alt / non-primary: normal browser behaviour, no animation
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+    if (busy.current) return e.preventDefault()
     e.preventDefault()
-    if (openKey !== d.key) setOpenKey(d.key)
-    else go(d)
+    const touch = (!fine || lastPointer.current === 'touch') && e.detail !== 0
+    if (touch && openKey !== d.key) return setOpenKey(d.key) // 1st tap: open
+    go(d) // desktop click / Enter / 2nd tap
   }
 
   return (
     <>
       <BrassDefs />
-      <ul className="doors">
-        {doors.map((d) => {
+      <ul ref={listRef} className="doors" data-busy={!!enter}>
+        {doors.map((d, i) => {
           const isOpen = openKey === d.key
           const isEntering = enter?.key === d.key
           return (
@@ -158,31 +259,40 @@ export default function Doors({ lang }: { lang: Lang }) {
               data-door
               data-open={isOpen || isEntering}
               data-entering={isEntering}
+              data-first={i === 0 ? '' : undefined}
+              data-sm-start={i % 3 === 0 ? '' : undefined}
+              data-sm-last={i === 6 ? '' : undefined}
+              data-lg-start={i === 0 || i === 5 ? '' : undefined}
+              data-lg-shift={i === 5 ? '' : undefined}
+              data-lg-last={i === 5 ? '' : undefined}
               className="door-slot"
-              style={{ zIndex: isEntering ? 60 : isOpen ? 10 : undefined, '--dc': d.color, '--s': enter?.scale } as CSSProperties}
+              style={{ '--dc': d.color } as CSSProperties}
             >
+              <span aria-hidden className="cornice" data-c-sm={i > 0 && i % 3 === 0 ? '' : undefined} data-c-lg={i === 5 ? '' : undefined} />
               <a
                 href={d.href}
                 aria-label={`${c.open} ${d.label}`}
                 {...(isWeb(d.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className="block rounded-t-[999px] focus-visible:ring-offset-4"
+                className="door-link block rounded-t-[999px] focus-visible:ring-offset-4"
+                style={{ zIndex: isOpen || isEntering ? 10 : undefined }}
                 onPointerDown={(e) => (lastPointer.current = e.pointerType)}
                 onPointerEnter={(e) => {
-                  if (e.pointerType !== 'touch' && fine) setOpenKey(d.key)
+                  if (!busy.current && e.pointerType !== 'touch' && fine) setOpenKey(d.key)
                 }}
                 onPointerLeave={(e) => {
-                  if (e.pointerType !== 'touch' && fine) setOpenKey((k) => (k === d.key ? null : k))
+                  if (!busy.current && e.pointerType !== 'touch' && fine) setOpenKey((k) => (k === d.key ? null : k))
                 }}
                 onFocus={(e) => {
-                  if (e.currentTarget.matches(':focus-visible')) setOpenKey(d.key)
+                  if (!busy.current && e.currentTarget.matches(':focus-visible')) setOpenKey(d.key)
                 }}
-                onBlur={() => setOpenKey((k) => (k === d.key ? null : k))}
+                onBlur={() => {
+                  if (!busy.current) setOpenKey((k) => (k === d.key ? null : k))
+                }}
                 onClick={(e) => onClick(e, d)}
               >
                 <span className="frame">
                   <span className="recess">
                     <span id={`doorway-${d.key}`} className="doorway">
-                      <span className="doorway-core" />
                       {d.icon}
                       <span className="doorway-label">{d.label}</span>
                     </span>
@@ -210,7 +320,8 @@ export default function Doors({ lang }: { lang: Lang }) {
           )
         })}
       </ul>
-      <div aria-hidden className="flood" data-on={!!enter} />
+      {/* Portaled to <body>: the scene is transformed during the push, which would capture a fixed overlay */}
+      {enter && createPortal(<div aria-hidden className="flood" data-reduced={reduced ? '' : undefined} />, document.body)}
     </>
   )
 }
