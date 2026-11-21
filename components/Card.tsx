@@ -95,28 +95,23 @@ export default function Card() {
     <main className="relative mx-auto w-full max-w-[1280px] px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:px-6 lg:pb-[calc(5rem+env(safe-area-inset-bottom))]">
       <LangToggle lang={lang} onChange={setLang} label={c.langSwitch} />
 
-      {/* HERO: single column on phones, 3 columns (text | photo | lamp) from lg */}
-      <section className="grid grid-cols-1 items-start gap-x-8 gap-y-5 lg:grid-rows-[1fr_auto_auto_1fr] lg:gap-y-0 lg:grid-cols-[minmax(0,1fr)_280px_260px] lg:gap-x-10 xl:grid-cols-[minmax(0,1fr)_340px_340px]">
-        {/* Lamp */}
-        <div className="mx-auto w-[200px] lg:col-start-3 lg:row-span-4 lg:row-start-1 lg:w-full">
-          <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
-          <p className="mx-auto -mt-2 max-w-[15rem] text-balance text-center text-xs font-semibold leading-snug text-brass-text lg:max-w-[18rem] lg:text-sm">{c.pullCord}</p>
-        </div>
-
+      {/* HERO. Phone: greeting top-left (FR/EN is top-right), then photo + lamp side by side, then the text.
+          Desktop (lg): 3 columns (text | photo | lamp). */}
+      <section className="grid grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] items-center gap-x-3 gap-y-5 pt-4 lg:grid-cols-[minmax(0,1fr)_280px_260px] lg:grid-rows-[1fr_auto_auto_1fr] lg:items-start lg:gap-x-10 lg:gap-y-0 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_340px_340px]">
         {/* Greeting */}
-        <div className="rise flex flex-col items-center gap-3 text-center lg:col-start-1 lg:row-start-2 lg:items-start lg:pb-5 lg:pt-14 lg:text-left" style={{ '--i': 0 } as React.CSSProperties}>
+        <div className="rise col-span-2 row-start-1 flex justify-self-start lg:col-span-1 lg:col-start-1 lg:row-start-2 lg:pb-5 lg:pt-14" style={{ '--i': 0 } as React.CSSProperties}>
           <GreetingBubble avatarAlt={c.avatarAlt} />
         </div>
 
         {/* Photo in arch frame */}
-        <div className="rise mx-auto w-[min(68vw,260px)] lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:w-full lg:pt-14" style={{ '--i': 1 } as React.CSSProperties}>
+        <div className="rise col-start-1 row-start-2 w-full max-w-[300px] justify-self-center lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:max-w-none lg:pt-14" style={{ '--i': 1 } as React.CSSProperties}>
           <div className="relative aspect-[4/5] overflow-hidden rounded-t-[999px] border-[3px] border-brass bg-panel shadow-[0_24px_48px_-20px_rgb(0_0_0/0.55)]">
             <Image
               src={IMAGES.hero}
               alt={c.photoAlt}
               {...IMAGES.heroSize}
               priority
-              sizes="(min-width: 1280px) 340px, (min-width: 1024px) 280px, 260px"
+              sizes="(min-width: 1280px) 340px, (min-width: 1024px) 280px, (min-width: 640px) 300px, 200px"
               className="h-full w-full object-cover"
               style={{ objectPosition: IMAGES.heroFocus }}
             />
@@ -124,8 +119,14 @@ export default function Card() {
           </div>
         </div>
 
+        {/* Lamp (theme switch) */}
+        <div className="col-start-2 row-start-2 w-full max-w-[230px] justify-self-center lg:col-start-3 lg:row-span-4 lg:row-start-1 lg:max-w-none">
+          <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
+          <p className="mx-auto -mt-2 max-w-[15rem] text-balance text-center text-[11px] font-semibold leading-snug text-brass-text sm:text-xs lg:max-w-[18rem] lg:text-sm">{c.pullCord}</p>
+        </div>
+
         {/* Identity */}
-        <header className="rise text-center lg:col-start-1 lg:row-start-3 lg:self-start lg:text-left" style={{ '--i': 2 } as React.CSSProperties}>
+        <header className="rise col-span-2 row-start-3 text-center lg:col-span-1 lg:col-start-1 lg:self-start lg:text-left" style={{ '--i': 2 } as React.CSSProperties}>
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-brass-text">{c.eyebrow}</p>
           <h1 className="mt-2 text-balance font-display text-[40px] font-semibold leading-[1.04] tracking-tight lg:text-[44px] xl:text-[58px]">
             <span className="block">Ramoul Chouaib</span>
