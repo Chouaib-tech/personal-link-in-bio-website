@@ -88,6 +88,7 @@ export default function Card() {
   }, [lang])
 
   useEffect(() => {
+    document.documentElement.setAttribute('data-hydrated', '1') // read by the /?debug panel
     setTheme(readTheme()) // value already applied before first paint by the inline script
   }, [])
 

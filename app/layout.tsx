@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google'
 import { COPY, LINKS } from '@/lib/content'
 import { IMAGES, SITE_URL } from '@/lib/images'
-import { THEME_INIT_SCRIPT } from '@/lib/theme'
+import { DEBUG_SCRIPT, THEME_INIT_SCRIPT } from '@/lib/theme'
 import './globals.css'
 
 const jakarta = Plus_Jakarta_Sans({
@@ -83,6 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" data-theme="dark" className={`${jakarta.variable} ${display.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: DEBUG_SCRIPT }} />
       </head>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD).replace(/</g, '\\u003c') }} />
