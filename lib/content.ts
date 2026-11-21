@@ -3,7 +3,7 @@ export type Lang = 'fr' | 'en'
 export const LINKS = {
   whatsapp: 'https://wa.me/213558638939',
   call: 'tel:+213558638939',
-  email: 'mailto:chouaib-takieddine.ramoul@univ-annaba.dz',
+  email: 'mailto:chouaibramoul.it@gmail.com',
   portfolio: 'https://ramoul-chouaib.vercel.app/',
   linkedin: 'https://www.linkedin.com/in/chouaib-ramoul25',
   github: 'https://github.com/Chouaib-tech',
