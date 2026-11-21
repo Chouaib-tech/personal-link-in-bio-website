@@ -12,6 +12,9 @@ export const LINKS = {
   facebook: 'https://facebook.com/ChouaibRamoul',
 } as const
 
+/** Show the "open to chat" pill. */
+export const AVAILABLE = true
+
 export const GREETINGS = [
   { text: 'Hello', lang: 'en', dir: 'ltr' },
   { text: 'Salut', lang: 'fr', dir: 'ltr' },
@@ -20,13 +23,17 @@ export const GREETINGS = [
 
 export const COPY = {
   fr: {
-    welcome: 'Bienvenue ! Construisons quelque chose de grand ensemble.',
+    eyebrow: "Salut, moi c'est",
     title: 'Développeur Full-Stack & Spécialiste Cybersécurité',
     badge: 'Master 2 · Réseaux & Sécurité',
-    pitch:
-      "Je conçois et développe des produits web et mobiles sécurisés et performants, de l'interface à l'infrastructure.",
-    chips: ['Full-Stack', 'Mobile', 'Cybersécurité', 'Réseaux'],
-    doorsTitle: 'Entrer en contact',
+    pitch: 'Je crée des applications web et mobiles et je sécurise les systèmes et les réseaux sur lesquels elles reposent.',
+    chips: ['Applications web', 'Applications mobiles', 'Ethical hacking', 'Sécurité réseaux'],
+    friendly: 'Ravi de vous rencontrer. Choisissez une porte pour me joindre.',
+    available: 'Disponible pour échanger',
+    city: 'Alger',
+    doorsTitle: 'Choisissez une porte',
+    doorsHintMouse: "Survolez une porte pour l'ouvrir, cliquez pour entrer.",
+    doorsHintTouch: "Touchez une porte pour l'ouvrir, touchez encore pour entrer.",
     open: 'Ouvrir',
     tapAgain: 'Touchez encore pour entrer',
     pullCord: 'Tirez la cordelette pour allumer la lumière',
@@ -34,19 +41,23 @@ export const COPY = {
     shortEmail: 'E-mail',
     shortPortfolio: 'Portfolio',
     langSwitch: 'Switch to English',
-    photoAlt: 'Portrait de Chouaib Ramoul qui fait un signe de la main',
+    photoAlt: 'Ramoul Chouaib Taki Eddine',
     avatarAlt: 'Photo de profil de Chouaib Ramoul',
     description:
-      'Développeur Full-Stack (web & mobile) et spécialiste cybersécurité, Master 2 Réseaux & Sécurité. Basé en Algérie.',
+      'Ramoul Chouaib Taki Eddine, développeur Full-Stack et spécialiste cybersécurité. Je crée des applications web et mobiles et je sécurise les systèmes et les réseaux sur lesquels elles reposent. Basé en Algérie.',
   },
   en: {
-    welcome: "Welcome! Let's build something great together.",
+    eyebrow: "Hi, I'm",
     title: 'Full-Stack Developer & Cybersecurity Specialist',
     badge: 'Master 2 · Network & Security',
-    pitch:
-      'I design and build secure, high-performance web and mobile products, from the interface to the infrastructure.',
-    chips: ['Full-Stack', 'Mobile', 'Cybersecurity', 'Networks'],
-    doorsTitle: 'Get in touch',
+    pitch: 'I build web and mobile apps, and I secure the systems and networks they run on.',
+    chips: ['Web apps', 'Mobile apps', 'Ethical hacking', 'Network security'],
+    friendly: 'Nice to meet you. Pick a door to reach me.',
+    available: 'Open to chat',
+    city: 'Algiers',
+    doorsTitle: 'Pick a door',
+    doorsHintMouse: 'Hover a door to open it, click to enter.',
+    doorsHintTouch: 'Tap a door to open it, tap again to enter.',
     open: 'Open',
     tapAgain: 'Tap again to enter',
     pullCord: 'Pull the cord to turn the light on',
@@ -54,9 +65,9 @@ export const COPY = {
     shortEmail: 'Email',
     shortPortfolio: 'Portfolio',
     langSwitch: 'Passer en français',
-    photoAlt: 'Portrait of Chouaib Ramoul waving hello',
+    photoAlt: 'Ramoul Chouaib Taki Eddine',
     avatarAlt: 'Profile photo of Chouaib Ramoul',
     description:
-      'Full-Stack Developer (web & mobile) and cybersecurity specialist with a Master 2 in Network & Security. Based in Algeria.',
+      'Ramoul Chouaib Taki Eddine, Full-Stack Developer and cybersecurity specialist. I build web and mobile apps, and I secure the systems and networks they run on. Based in Algeria.',
   },
 } as const

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google'
-import { COPY } from '@/lib/content'
+import { COPY, LINKS } from '@/lib/content'
 import { IMAGES, SITE_URL } from '@/lib/images'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
 import './globals.css'
@@ -13,34 +13,35 @@ const jakarta = Plus_Jakarta_Sans({
 
 const display = Playfair_Display({
   subsets: ['latin'],
-  weight: '600',
+  weight: ['400', '600'],
   display: 'swap',
   variable: '--font-display',
 })
 
-const TITLE = 'Chouaib Ramoul - Full-Stack Developer'
-const DESCRIPTION = COPY.en.description
+const NAME = 'Ramoul Chouaib Taki Eddine'
+const TITLE = `${NAME} · Développeur Full-Stack & Cybersécurité`
+const DESCRIPTION = COPY.fr.description // FR is the default language
 const ogImage = {
   url: IMAGES.og,
   width: IMAGES.ogSize.width,
   height: IMAGES.ogSize.height,
-  alt: COPY.en.photoAlt,
+  alt: COPY.fr.photoAlt,
 }
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: TITLE,
   description: DESCRIPTION,
-  keywords: ['Full-Stack Developer', 'Cybersecurity', 'Mobile Developer', 'Network & Security', 'Chouaib Ramoul', 'Algeria'],
-  authors: [{ name: 'Chouaib Ramoul' }],
-  creator: 'Chouaib Ramoul',
+  keywords: ['Développeur Full-Stack', 'Cybersécurité', 'Ethical hacking', 'Développeur mobile', 'Sécurité réseaux', 'Full-Stack Developer', 'Cybersecurity', NAME, 'Chouaib Ramoul', 'Algérie'],
+  authors: [{ name: NAME }],
+  creator: NAME,
   alternates: { canonical: '/' },
   icons: { icon: IMAGES.avatar, apple: IMAGES.avatar },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
     url: '/',
-    siteName: 'Chouaib Ramoul',
+    siteName: NAME,
     type: 'website',
     locale: 'fr_FR',
     alternateLocale: ['en_US'],
@@ -53,6 +54,18 @@ export const metadata: Metadata = {
     images: [IMAGES.og],
   },
   robots: { index: true, follow: true },
+}
+
+// Structured data. Deliberately no phone number or email here.
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: NAME,
+  alternateName: 'Chouaib Ramoul',
+  jobTitle: COPY.en.title,
+  url: SITE_URL,
+  image: new URL(IMAGES.hero, SITE_URL).toString(),
+  sameAs: [LINKS.linkedin, LINKS.github, LINKS.telegram, LINKS.instagram, LINKS.facebook],
 }
 
 export const viewport: Viewport = {
@@ -71,7 +84,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD).replace(/</g, '\\u003c') }} />
+        {children}
+      </body>
     </html>
   )
 }

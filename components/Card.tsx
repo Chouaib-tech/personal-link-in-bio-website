@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import Doors from '@/components/Doors'
+import StatusRow from '@/components/StatusRow'
 import PullLamp from '@/components/ui/pull-lamp'
 import { COPY, GREETINGS, type Lang } from '@/lib/content'
 import { IMAGES } from '@/lib/images'
@@ -65,7 +66,16 @@ function LangToggle({ lang, onChange, label }: { lang: Lang; onChange: (l: Lang)
 export default function Card() {
   const [lang, setLang] = useState<Lang>('fr')
   const [theme, setTheme] = useState<Theme>('dark')
+  const [fine, setFine] = useState(true) // (hover: hover) and (pointer: fine), same query as the doors
   const c = COPY[lang]
+
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)')
+    const sync = () => setFine(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   useEffect(() => {
     document.documentElement.lang = lang
@@ -81,7 +91,7 @@ export default function Card() {
   }
 
   return (
-    <main className="relative mx-auto w-full max-w-[1280px] px-4 pb-10 lg:px-6">
+    <main className="relative mx-auto w-full max-w-[1280px] px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:px-6 lg:pb-[calc(5rem+env(safe-area-inset-bottom))]">
       <LangToggle lang={lang} onChange={setLang} label={c.langSwitch} />
 
       {/* HERO: single column on phones, 3 columns (text | photo | lamp) from lg */}
@@ -95,7 +105,6 @@ export default function Card() {
         {/* Greeting */}
         <div className="rise flex flex-col items-center gap-3 text-center lg:col-start-1 lg:row-start-1 lg:items-start lg:pt-14 lg:text-left" style={{ '--i': 0 } as React.CSSProperties}>
           <GreetingBubble avatarAlt={c.avatarAlt} />
-          <p className="text-balance text-[15px] font-medium leading-snug text-muted lg:text-lg">{c.welcome}</p>
         </div>
 
         {/* Photo in arch frame */}
@@ -116,32 +125,39 @@ export default function Card() {
 
         {/* Identity */}
         <header className="rise text-center lg:col-start-1 lg:row-start-2 lg:self-start lg:text-left" style={{ '--i': 2 } as React.CSSProperties}>
-          <h1 className="font-display text-[40px] font-semibold leading-[1.05] tracking-tight lg:text-[58px]">Chouaib Ramoul</h1>
-          <p className="mx-auto mt-2 max-w-[22rem] text-balance text-[16px] font-semibold leading-snug text-brass-text lg:mx-0 lg:max-w-none lg:text-lg">{c.title}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-brass-text">{c.eyebrow}</p>
+          <h1 className="mt-2 text-balance font-display text-[40px] font-semibold leading-[1.04] tracking-tight lg:text-[44px] xl:text-[58px]">
+            <span className="block">Ramoul Chouaib</span>
+            <span className="block font-normal text-brass-text">Taki Eddine</span>
+          </h1>
+          <p className="mx-auto mt-3 max-w-[22rem] text-balance text-[16px] font-semibold leading-snug text-brass-text lg:mx-0 lg:max-w-none lg:text-lg">{c.title}</p>
           <span className="tc mt-4 inline-block rounded-full border border-line bg-panel px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em]">{c.badge}</span>
           <p className="mx-auto mt-4 max-w-[26rem] text-balance text-[15px] leading-relaxed text-muted lg:mx-0 lg:max-w-md lg:text-[16px]">{c.pitch}</p>
-          <ul className="mt-4 flex flex-wrap justify-center gap-1.5 pb-2 lg:justify-start">
+          <ul className="mt-4 flex flex-wrap justify-center gap-1.5 lg:justify-start">
             {c.chips.map((chip) => (
               <li key={chip} className="tc rounded-full border border-brass/40 px-3 py-1 text-xs font-semibold text-brass-text">
                 {chip}
               </li>
             ))}
           </ul>
+          <p className="mx-auto mt-5 max-w-[26rem] text-balance text-[17px] leading-snug text-muted lg:mx-0 lg:max-w-md lg:text-lg">{c.friendly}</p>
+          <StatusRow lang={lang} />
         </header>
       </section>
 
       {/* DOORS: one continuous wall, then social buttons */}
       <section aria-labelledby="doors-title" className="mt-10 lg:mt-14">
         <div aria-hidden className="hairline mb-8" />
-        <h2 id="doors-title" className="mb-5 text-center font-display text-2xl font-semibold tracking-tight lg:text-3xl">
+        <h2 id="doors-title" className="text-center font-display text-2xl font-semibold tracking-tight lg:text-3xl">
           {c.doorsTitle}
         </h2>
+        <p className="mx-auto mb-5 mt-2 min-h-[2.6rem] max-w-md text-balance text-center text-sm leading-snug text-muted sm:min-h-0">
+          {fine ? c.doorsHintMouse : c.doorsHintTouch}
+        </p>
         <div className="scene rise" style={{ '--i': 4 } as React.CSSProperties}>
           <Doors lang={lang} />
         </div>
       </section>
-
-      <footer className="mt-12 text-center text-xs text-muted">© 2026 Ramoul Chouaib</footer>
     </main>
   )
 }
