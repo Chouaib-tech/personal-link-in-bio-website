@@ -36,9 +36,13 @@ function buildDoors(lang: Lang): DoorDef[] {
 const isWeb = (href: string) => href.startsWith('http')
 const staysAlive = (href: string) => href.startsWith('tel:') || href.startsWith('mailto:')
 
-// Timeline (ms): push 250 -> 950, overlay 600 -> 950, navigate at 1000
+// Timeline (ms): push 250 -> 950, overlay 600 -> 950.
+// http(s): new tab at 900 (still inside the user-gesture window); tel/mailto: location.assign at 1000.
+const OPEN_TAB_AT = 900
 const NAVIGATE_AT = 1000
 const REDUCED_NAVIGATE_AT = 150
+const TAB_FALLBACK_RESET = 1200 // zoom back out if the new tab did not hide this one
+const ALIVE_RESET = 1500 // tel / mailto
 const PUSH_SCALE = 14
 const SCROLL_KEYS = [' ', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End']
 
@@ -98,6 +102,7 @@ export default function Doors({ lang }: { lang: Lang }) {
   const busy = useRef(false)
   const timers = useRef<number[]>([])
   const scrollY0 = useRef<number | null>(null)
+  const detachReturn = useRef<(() => void) | null>(null)
 
   const clearTimers = () => {
     timers.current.forEach((t) => window.clearTimeout(t))
@@ -128,6 +133,8 @@ export default function Doors({ lang }: { lang: Lang }) {
   /** Instant reset: no transition, overlay removed, doors closed. */
   const reset = useCallback(() => {
     clearTimers()
+    detachReturn.current?.()
+    detachReturn.current = null
     busy.current = false
     const el = scene()
     if (el) {
@@ -164,6 +171,7 @@ export default function Doors({ lang }: { lang: Lang }) {
       motionMq.removeEventListener('change', sync)
       window.removeEventListener('pageshow', reset)
       clearTimers()
+      detachReturn.current?.()
       lockScroll(false)
     }
   }, [reset, lockScroll])
@@ -178,8 +186,9 @@ export default function Doors({ lang }: { lang: Lang }) {
     return () => document.removeEventListener('pointerdown', onDown)
   }, [openKey])
 
-  /** tel:/mailto: keep the page alive: zoom back out and re-enable everything. */
+  /** The page stays alive (tel:, mailto:, new tab): zoom back out and re-enable everything. */
   const reverse = useCallback(() => {
+    if (!busy.current) return // already reset (idempotent)
     const el = scene()
     busy.current = false
     setEnter(null)
@@ -198,6 +207,37 @@ export default function Doors({ lang }: { lang: Lang }) {
       }, 650),
     )
   }, [lockScroll])
+
+  /** http(s): open in a new tab; if the browser blocks it, fall back to this tab. */
+  const openNewTab = useCallback(
+    (href: string) => {
+      let w: Window | null = null
+      try {
+        w = window.open(href, '_blank') // no "noopener" feature: we need the return value to detect blocking
+      } catch {}
+      if (!w) {
+        window.location.assign(href)
+        return
+      }
+      try {
+        w.opener = null
+      } catch {}
+      // (a) coming back to this tab: clean hall, instantly
+      const onVisible = () => {
+        if (document.visibilityState === 'visible') reset()
+      }
+      const onFocus = () => reset()
+      document.addEventListener('visibilitychange', onVisible)
+      window.addEventListener('focus', onFocus)
+      detachReturn.current = () => {
+        document.removeEventListener('visibilitychange', onVisible)
+        window.removeEventListener('focus', onFocus)
+      }
+      // (b) fallback for browsers where the new tab does not hide this one
+      timers.current.push(window.setTimeout(reverse, TAB_FALLBACK_RESET))
+    },
+    [reset, reverse],
+  )
 
   const go = useCallback(
     (d: DoorDef) => {
@@ -223,17 +263,19 @@ export default function Doors({ lang }: { lang: Lang }) {
         el.setAttribute('data-push', 'true')
       }
 
+      const web = isWeb(d.href)
       timers.current.push(
         window.setTimeout(
           () => {
+            if (web) return openNewTab(d.href)
             window.location.assign(d.href)
-            if (staysAlive(d.href)) timers.current.push(window.setTimeout(reverse, 1500))
+            if (staysAlive(d.href)) timers.current.push(window.setTimeout(reverse, ALIVE_RESET))
           },
-          reduced ? REDUCED_NAVIGATE_AT : NAVIGATE_AT,
+          reduced ? REDUCED_NAVIGATE_AT : web ? OPEN_TAB_AT : NAVIGATE_AT,
         ),
       )
     },
-    [reduced, reverse, lockScroll],
+    [reduced, reverse, lockScroll, openNewTab],
   )
 
   const onClick = (e: MouseEvent<HTMLAnchorElement>, d: DoorDef) => {

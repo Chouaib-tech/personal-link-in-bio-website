@@ -12,8 +12,9 @@ export const LINKS = {
   facebook: 'https://facebook.com/ChouaibRamoul',
 } as const
 
-/** Show the "open to chat" pill. */
-export const AVAILABLE = true
+// Write 1-2 sentences about me here (leave empty to hide the paragraph).
+export const ABOUT_FR = ''
+export const ABOUT_EN = ''
 
 export const GREETINGS = [
   { text: 'Hello', lang: 'en', dir: 'ltr' },
@@ -26,11 +27,7 @@ export const COPY = {
     eyebrow: "Salut, moi c'est",
     title: 'Développeur Full-Stack & Spécialiste Cybersécurité',
     badge: 'Master 2 · Réseaux & Sécurité',
-    pitch: 'Je crée des applications web et mobiles et je sécurise les systèmes et les réseaux sur lesquels elles reposent.',
-    chips: ['Applications web', 'Applications mobiles', 'Ethical hacking', 'Sécurité réseaux'],
-    friendly: 'Ravi de vous rencontrer. Choisissez une porte pour me joindre.',
-    available: 'Disponible pour échanger',
-    city: 'Alger',
+    location: 'Constantine, Algérie',
     doorsTitle: 'Choisissez une porte',
     doorsHintMouse: "Survolez une porte pour l'ouvrir, cliquez pour entrer.",
     doorsHintTouch: "Touchez une porte pour l'ouvrir, touchez encore pour entrer.",
@@ -50,11 +47,7 @@ export const COPY = {
     eyebrow: "Hi, I'm",
     title: 'Full-Stack Developer & Cybersecurity Specialist',
     badge: 'Master 2 · Network & Security',
-    pitch: 'I build web and mobile apps, and I secure the systems and networks they run on.',
-    chips: ['Web apps', 'Mobile apps', 'Ethical hacking', 'Network security'],
-    friendly: 'Nice to meet you. Pick a door to reach me.',
-    available: 'Open to chat',
-    city: 'Algiers',
+    location: 'Constantine, Algeria',
     doorsTitle: 'Pick a door',
     doorsHintMouse: 'Hover a door to open it, click to enter.',
     doorsHintTouch: 'Tap a door to open it, tap again to enter.',
