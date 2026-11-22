@@ -1,44 +1,26 @@
 'use client'
 
-import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { ChevronDown } from 'lucide-react'
+import Avatar from '@/components/Avatar'
 import Doors from '@/components/Doors'
 import StatusRow from '@/components/StatusRow'
 import PullLamp from '@/components/ui/pull-lamp'
-import { ABOUT_EN, ABOUT_FR, COPY, GREETINGS, type Lang } from '@/lib/content'
-import { IMAGES } from '@/lib/images'
+import { ABOUT_EN, ABOUT_FR, COPY, type Lang } from '@/lib/content'
 import { applyTheme, readTheme, type Theme } from '@/lib/theme'
 
-function GreetingBubble({ avatarAlt }: { avatarAlt: string }) {
-  const [i, setI] = useState(0)
+// Tiny dust motes drifting in the lamp's light: position, drift, duration, delay (max 10, CSS only)
+const MOTES = [
+  [74, 22, 14, -26, 11, 0], [80, 40, -12, -30, 9, -3], [88, 30, 10, -22, 13, -6], [70, 55, 16, -34, 10, -2], [92, 52, -10, -28, 12, -8],
+  [78, 66, 12, -24, 9, -5], [85, 18, -14, -20, 14, -9], [66, 38, 10, -30, 11, -4], [95, 70, -8, -26, 10, -7], [72, 74, 14, -28, 13, -1],
+] as const
 
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const t = setInterval(() => setI((n) => (n + 1) % GREETINGS.length), 2600)
-    return () => clearInterval(t)
-  }, [])
-
+function Dust() {
   return (
-    <div className="tc inline-flex items-center gap-2.5 rounded-full border border-line bg-panel py-1.5 pl-1.5 pr-5 shadow-lg shadow-black/10">
-      <Image
-        src={IMAGES.avatar}
-        alt={avatarAlt}
-        {...IMAGES.avatarSize}
-        className="h-10 w-10 rounded-full object-cover ring-2 ring-brass"
-      />
-      <span className="grid text-[18px] font-bold leading-none">
-        {GREETINGS.map((g, idx) => (
-          <span
-            key={g.text}
-            lang={g.lang}
-            dir={g.dir}
-            aria-hidden={idx !== i}
-            className={`whitespace-nowrap text-left transition-opacity duration-500 [grid-area:1/1] ${idx === i ? 'opacity-100' : 'opacity-0'}`}
-          >
-            {g.text}
-          </span>
-        ))}
-      </span>
+    <div aria-hidden className="dust">
+      {MOTES.map(([x, y, dx, dy, d, delay], i) => (
+        <i key={i} style={{ '--x': `${x}%`, '--y': `${y}%`, '--dx': `${dx}px`, '--dy': `${dy}px`, '--d': `${d}s`, '--delay': `${delay}s` } as CSSProperties} />
+      ))}
     </div>
   )
 }
@@ -101,47 +83,41 @@ export default function Card() {
     <main className="relative mx-auto w-full max-w-[1280px] px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:px-6 lg:pb-[calc(5rem+env(safe-area-inset-bottom))]">
       <LangToggle lang={lang} onChange={setLang} label={c.langSwitch} />
 
-      {/* HERO. Phone: greeting top-left (FR/EN is top-right), then photo + lamp side by side, then the text.
-          Desktop (lg): 3 columns (text | photo | lamp). */}
-      <section className="grid grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] items-center gap-x-3 gap-y-5 pt-4 lg:grid-cols-[minmax(0,1fr)_280px_260px] lg:grid-rows-[1fr_auto_auto_1fr] lg:items-start lg:gap-x-10 lg:gap-y-0 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_340px_340px]">
-        {/* Greeting */}
-        <div className="rise col-span-2 row-start-1 flex justify-self-start lg:col-span-1 lg:col-start-1 lg:row-start-2 lg:pb-5 lg:pt-14" style={{ '--i': 0 } as React.CSSProperties}>
-          <GreetingBubble avatarAlt={c.avatarAlt} />
-        </div>
-
-        {/* Photo in arch frame */}
-        <div className="rise col-start-1 row-start-2 w-full max-w-[300px] justify-self-center lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:max-w-none lg:pt-14" style={{ '--i': 1 } as React.CSSProperties}>
-          <div className="relative aspect-[4/5] overflow-hidden rounded-t-[999px] border-[3px] border-brass bg-panel shadow-[0_24px_48px_-20px_rgb(0_0_0/0.55)]">
-            <Image
-              src={IMAGES.hero}
-              alt={c.photoAlt}
-              {...IMAGES.heroSize}
-              priority
-              sizes="(min-width: 1280px) 340px, (min-width: 1024px) 280px, (min-width: 640px) 300px, 200px"
-              className="h-full w-full object-cover"
-              style={{ objectPosition: IMAGES.heroFocus }}
-            />
-            <div aria-hidden className="pointer-events-none absolute inset-[7px] rounded-t-[999px] border border-brass/55" />
+      {/* HERO = one room: wall + wainscot + floor, the bust, the lamp, the name.
+          Phone: bust on top, lamp small at the top right, text below. Desktop: text | bust | lamp. */}
+      <section
+        className="hero relative lg:grid lg:grid-cols-[minmax(0,1fr)_clamp(380px,36vw,540px)_clamp(170px,16vw,240px)] lg:items-end lg:gap-x-7 mt-3 lg:mt-4 lg:px-10 lg:pb-[var(--fh)] lg:pt-14 min-[1360px]:-mx-12"
+        style={{ '--lampw': 'clamp(170px, 16vw, 240px)' } as CSSProperties}
+      >
+        <div className="stage relative pb-[var(--fh)] pt-3 lg:contents">
+          <div aria-hidden className="room-bg">
+            <i className="rb-wain" />
+            <i className="rb-skirt" />
+            <i className="rb-floor" />
           </div>
-        </div>
 
-        {/* Lamp (theme switch) */}
-        <div
-          className="col-start-2 row-start-2 w-full max-w-[230px] justify-self-center lg:col-start-3 lg:row-span-4 lg:row-start-1 lg:max-w-none"
-          onKeyDownCapture={() => (lampKey.current = true)}
-          onPointerDownCapture={() => (lampKey.current = false)}
-          onClickCapture={(e) => {
-            if (!lampKey.current) e.stopPropagation()
-          }}
-        >
-          <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
-          <p className="mx-auto -mt-2 max-w-[15rem] text-balance text-center text-[11px] font-semibold leading-snug text-brass-text sm:text-xs lg:max-w-[18rem] lg:text-sm">{c.pullCord}</p>
+          <Avatar lang={lang} className="relative z-[1] w-[min(92%,350px)] lg:col-start-2 lg:row-start-1 lg:w-full" />
+
+          {/* Lamp (theme switch): on a little wall shelf on phones, standing on the floor on desktop */}
+          <div
+            className="absolute right-1 top-[78px] z-[2] w-[88px] lg:relative lg:right-auto lg:top-auto lg:z-[1] lg:col-start-3 lg:row-start-1 lg:mb-[calc(var(--lampw)*-0.128)] lg:w-full"
+            onKeyDownCapture={() => (lampKey.current = true)}
+            onPointerDownCapture={() => (lampKey.current = false)}
+            onClickCapture={(e) => {
+              if (!lampKey.current) e.stopPropagation()
+            }}
+          >
+            <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
+            <i aria-hidden className="lamp-shelf lg:hidden" />
+            <p className="lamp-hint">{c.pullCord}</p>
+          </div>
+          <Dust />
         </div>
 
         {/* Identity */}
-        <header className="rise col-span-2 row-start-3 text-center lg:col-span-1 lg:col-start-1 lg:self-start lg:text-left" style={{ '--i': 2 } as React.CSSProperties}>
+        <header className="rise relative z-[2] mt-7 text-center lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-center lg:text-left" style={{ '--i': 2 } as CSSProperties}>
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-brass-text">{c.eyebrow}</p>
-          <h1 className="mt-2 text-balance font-display text-[40px] font-semibold leading-[1.04] tracking-tight lg:text-[44px] xl:text-[58px]">
+          <h1 className="mt-2 text-balance font-display text-[40px] font-semibold leading-[1.04] tracking-tight lg:text-[clamp(2.2rem,4.2vw,4rem)]">
             <span className="block">Ramoul Chouaib</span>
             <span className="block font-normal text-brass-text">Taki Eddine</span>
           </h1>
@@ -152,8 +128,12 @@ export default function Card() {
         </header>
       </section>
 
+      <a href="#doors-title" aria-label={c.seeDoors} className="chev mx-auto mt-6 grid h-11 w-11 place-items-center rounded-full text-brass-text lg:mt-8">
+        <ChevronDown aria-hidden className="h-6 w-6" strokeWidth={2.2} />
+      </a>
+
       {/* DOORS: one continuous wall, then social buttons */}
-      <section aria-labelledby="doors-title" className="mt-10 lg:mt-14">
+      <section aria-labelledby="doors-title" className="mt-6 scroll-mt-4 lg:mt-8">
         <div aria-hidden className="hairline mb-8" />
         <h2 id="doors-title" className="text-center font-display text-2xl font-semibold tracking-tight lg:text-3xl">
           {c.doorsTitle}

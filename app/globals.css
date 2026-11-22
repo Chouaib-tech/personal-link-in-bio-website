@@ -798,6 +798,365 @@
   }
 }
 
+
+/* ============================================================
+   HERO ROOM: the same wall / wainscot / skirting / floor language as the doors hall.
+   The bust, the lamp and the name share it. Only transform + opacity are animated.
+   ============================================================ */
+.hero {
+  --fh: 44px; /* floor height */
+}
+@media (min-width: 1024px) {
+  .hero {
+    --fh: 64px;
+  }
+}
+.room-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  background-color: var(--wall);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 24px 48px -24px rgb(0 0 0 / 0.5);
+  transition: background-color 0.65s ease;
+}
+.room-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--noise);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+/* lamp light from the top right + vignette; warmer and wider when the lamp is on */
+.room-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 90% at 90% 4%, var(--wall-light), transparent 70%),
+    radial-gradient(120% 110% at 50% 45%, transparent 55%, var(--vignette) 100%);
+}
+.rb-wain,
+.rb-skirt,
+.rb-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+/* lower wall: chair rail + raised panels (stile lines) */
+.rb-wain {
+  bottom: var(--fh);
+  height: 30%;
+  background-color: var(--wain);
+  background-image:
+    linear-gradient(
+      180deg,
+      var(--rail-hi) 0 1px,
+      var(--rail) 1px 6px,
+      var(--rail-lo) 6px 8px,
+      transparent 8px
+    ),
+    linear-gradient(180deg, rgb(0 0 0 / 0.22), transparent 24px),
+    repeating-linear-gradient(90deg, transparent 0 168px, rgb(0 0 0 / 0.22) 168px 169px, rgb(255 255 255 / 0.08) 169px 170px, transparent 170px 180px);
+  transition: background-color 0.65s ease;
+}
+.rb-skirt {
+  bottom: var(--fh);
+  height: 20px;
+  background: linear-gradient(180deg, var(--skirt-hi), var(--skirt-lo));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 -2px 3px rgb(0 0 0 / 0.25),
+    0 -1px 2px rgb(0 0 0 / 0.2);
+}
+.rb-floor {
+  bottom: 0;
+  height: var(--fh);
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.5), transparent 28%),
+    linear-gradient(180deg, var(--floor-hi), var(--floor-lo));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1);
+}
+
+/* ---------- The bust ---------- */
+.avatar-stage {
+  position: relative;
+  aspect-ratio: 1100 / 1204;
+  perspective: 900px;
+}
+.avatar-btn {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 24px;
+  -webkit-tap-highlight-color: transparent;
+}
+.avatar-tilt {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 92%;
+  will-change: transform;
+}
+.avatar-squish {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+}
+/* the hard left / right / bottom crops of the render never show: fade them out */
+.avatar-mask {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 99%), linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, #000 68%, transparent 99%), linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%);
+  mask-composite: intersect;
+}
+.avatar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+.avatar-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-mask-image: var(--cutout);
+  mask-image: var(--cutout);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+.avatar-cone {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.65s ease;
+  background: radial-gradient(ellipse 85% 75% at 102% 28%, rgb(255 205 140 / 0.62), rgb(255 190 120 / 0.26) 46%, transparent 76%);
+}
+:root[data-theme='light'] .avatar-cone {
+  opacity: 1;
+}
+.avatar-rim {
+  position: absolute;
+  inset: 0;
+  opacity: 0.75;
+  transition: opacity 0.65s ease;
+  background:
+    linear-gradient(270deg, rgb(150 200 255 / 0.4), transparent 17%),
+    linear-gradient(90deg, rgb(150 200 255 / 0.15), transparent 9%);
+}
+:root[data-theme='light'] .avatar-rim {
+  opacity: 0.2;
+}
+/* soft shadow on the floor under him */
+.avatar-shadow {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: -16px;
+  height: 36px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, var(--cast), transparent 70%);
+}
+/* touch: a very slow idle sway instead of pointer tracking */
+@media (hover: none), (pointer: coarse) {
+  .avatar-tilt {
+    animation: sway 9s ease-in-out infinite alternate;
+  }
+}
+@keyframes sway {
+  from {
+    transform: rotateY(-3.5deg) rotateX(0.6deg);
+  }
+  to {
+    transform: rotateY(3.5deg) rotateX(-0.6deg);
+  }
+}
+
+/* speech bubble: sits left of his head, tail pointing at it */
+.avatar-bubble {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 3%;
+  max-width: 40%;
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  border-radius: 14px 14px 4px 14px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: rgb(var(--ink));
+  background: rgb(var(--panel));
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 10px 24px -10px rgb(0 0 0 / 0.55);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.55) translateY(8px);
+  transform-origin: 100% 100%;
+  transition:
+    opacity 0.22s ease,
+    transform 0.3s cubic-bezier(0.2, 1.5, 0.4, 1),
+    visibility 0s linear 0.3s;
+}
+.avatar-bubble::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  bottom: -5px;
+  width: 11px;
+  height: 11px;
+  background: inherit;
+  transform: rotate(45deg);
+  border-radius: 0 0 3px 0;
+}
+.avatar-bubble[data-shown='true'] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+@media (min-width: 1024px) {
+  .avatar-bubble {
+    left: auto;
+    right: 64%;
+    top: 13%;
+    font-size: 0.95rem;
+    padding: 0.7rem 1rem;
+    max-width: 46%;
+  }
+}
+
+/* ---------- Lamp placement helpers ---------- */
+.lamp-shelf {
+  position: absolute;
+  left: -8%;
+  right: -18%;
+  top: 87%;
+  height: 7px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--wood-hi, #7a5233), var(--wood, #5a3a22) 60%, var(--wood-lo, #3b2415));
+  box-shadow:
+    0 3px 5px -1px rgb(0 0 0 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.18);
+}
+.lamp-hint {
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  top: 98%;
+  margin: 0;
+  text-align: center;
+  text-wrap: balance;
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: rgb(var(--brass-text));
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+}
+@media (min-width: 1024px) {
+  .lamp-hint {
+    left: 0;
+    right: 0;
+    top: 100%;
+    font-size: 0.8rem;
+  }
+}
+
+/* ---------- Dust motes in the lamp light (CSS only, max 10) ---------- */
+.dust {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 20px;
+  opacity: 0.3;
+  transition: opacity 0.65s ease;
+}
+:root[data-theme='light'] .dust {
+  opacity: 1;
+}
+.dust i {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgb(255 226 170 / 0.85);
+  opacity: 0;
+  animation: mote var(--d) ease-in-out var(--delay) infinite;
+}
+@keyframes mote {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.8;
+  }
+  75% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate3d(var(--dx), var(--dy), 0);
+    opacity: 0;
+  }
+}
+
+/* ---------- Chevron toward the doors ---------- */
+html {
+  scroll-behavior: smooth;
+}
+.chev {
+  animation: bob 1.8s ease-in-out infinite;
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .avatar-tilt,
+  .chev {
+    animation: none;
+  }
+  .dust i {
+    animation: none;
+    opacity: 0.55;
+  }
+  .avatar-bubble {
+    transform: none;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+  }
+}
+
 /* ---------- Entrance: calm stagger, no bounce ---------- */
 @keyframes rise {
   from {

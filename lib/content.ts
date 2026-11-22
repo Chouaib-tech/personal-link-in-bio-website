@@ -19,12 +19,6 @@ export const ABOUT_EN = ''
 /** Desktop browsers often have no mail app for mailto:, so the email door opens Gmail compose there. */
 export const GMAIL_COMPOSE = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(LINKS.email.replace('mailto:', ''))}`
 
-export const GREETINGS = [
-  { text: 'Hello', lang: 'en', dir: 'ltr' },
-  { text: 'Salut', lang: 'fr', dir: 'ltr' },
-  { text: 'مرحبا', lang: 'ar', dir: 'rtl' },
-] as const
-
 export const COPY = {
   fr: {
     eyebrow: "Salut, moi c'est",
@@ -42,7 +36,9 @@ export const COPY = {
     shortPortfolio: 'Portfolio',
     langSwitch: 'Switch to English',
     photoAlt: 'Ramoul Chouaib Taki Eddine',
-    avatarAlt: 'Photo de profil de Chouaib Ramoul',
+    avatarLabel: 'Dire bonjour',
+    bubbles: ["Salut ! Moi c'est Chouaib", 'Ravi de vous rencontrer', 'Choisissez une porte, juste en dessous'],
+    seeDoors: 'Voir les portes',
     description:
       'Ramoul Chouaib Taki Eddine, développeur Full-Stack et spécialiste cybersécurité. Je crée des applications web et mobiles et je sécurise les systèmes et les réseaux sur lesquels elles reposent. Basé en Algérie.',
   },
@@ -62,7 +58,9 @@ export const COPY = {
     shortPortfolio: 'Portfolio',
     langSwitch: 'Passer en français',
     photoAlt: 'Ramoul Chouaib Taki Eddine',
-    avatarAlt: 'Profile photo of Chouaib Ramoul',
+    avatarLabel: 'Say hi',
+    bubbles: ["Hi! I'm Chouaib", 'Nice to meet you', 'Pick a door, just below'],
+    seeDoors: 'See the doors',
     description:
       'Ramoul Chouaib Taki Eddine, Full-Stack Developer and cybersecurity specialist. I build web and mobile apps, and I secure the systems and networks they run on. Based in Algeria.',
   },
