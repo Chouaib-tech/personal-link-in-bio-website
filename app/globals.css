@@ -875,11 +875,10 @@
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  border-radius: 20px;
   background-color: var(--wall);
-  box-shadow:
-    0 0 0 1px var(--line),
-    0 24px 48px -24px rgb(0 0 0 / 0.5);
+  /* no card edge: the floor fades into the page, which flows into the doors hall below */
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 46px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 46px), transparent 100%);
   transition: background-color 0.65s ease;
 }
 .room-bg::before {
@@ -897,7 +896,7 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(60% 90% at 90% 4%, var(--wall-light), transparent 70%),
+    radial-gradient(50% 90% at 84% 4%, var(--wall-light), transparent 70%),
     radial-gradient(120% 110% at 50% 45%, transparent 55%, var(--vignette) 100%);
 }
 .rb-wain,
@@ -1106,8 +1105,8 @@
 .lamp-hint {
   position: absolute;
   left: auto;
-  right: 22px; /* the lamp box pokes 14px past the scene edge: keep the text inside */
-  width: 170px;
+  right: 8px;
+  width: 160px;
   top: 100%;
   margin: 0;
   text-align: center;
@@ -1138,14 +1137,14 @@
 /* ---------- THE DESK: walnut top + front, in front of the bust ---------- */
 .hero {
   --lampw: 142px;
-  --deskH: 76px;
-  --deskTop: 32px;
+  --deskH: 88px;
+  --deskTop: 38px;
 }
 @media (min-width: 1024px) {
   .hero {
     --lampw: clamp(170px, 16vw, 240px);
-    --deskH: 104px;
-    --deskTop: 46px;
+    --deskH: 124px;
+    --deskTop: 56px;
   }
 }
 .desk {
@@ -1156,15 +1155,6 @@
   bottom: var(--fh);
   height: var(--deskH);
   pointer-events: none;
-}
-@media (min-width: 1024px) {
-  .desk {
-    position: relative; /* a grid item on desktop */
-    left: auto;
-    right: auto;
-    bottom: auto;
-    width: auto;
-  }
 }
 .desk-top,
 .desk-front {
@@ -1239,36 +1229,206 @@
   height: 0;
   bottom: calc(var(--deskH) - var(--deskTop) * 0.62);
 }
-.desk-props svg {
+.desk-props-in {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.desk-props-in > * {
   position: absolute;
   bottom: 0;
+}
+.desk-props svg {
+  display: block;
   height: auto;
   overflow: visible;
 }
+/* laptop turned toward him; soft blue-green screen glow falls on the desk */
 .prop-laptop {
-  left: 3%;
-  width: 82px;
+  left: 2%;
+  width: 156px;
+  perspective: 520px;
+  perspective-origin: 20% 50%;
+}
+.lap-svg {
+  width: 100%;
+  transform-origin: 8% 100%;
+  transform: rotateY(-24deg);
+}
+.lap-pool {
+  position: absolute;
+  left: 4%;
+  right: -16%;
+  bottom: -26%;
+  height: 56%;
+  background: radial-gradient(ellipse 50% 50% at 52% 38%, rgb(111 227 208 / 0.34), transparent 72%);
+  pointer-events: none;
+}
+.lap-cursor {
+  animation: blink 1.05s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
 }
 .prop-mug {
-  left: 31%;
-  width: 22px;
+  left: 41%;
+  width: 24px;
 }
 .prop-book {
-  left: 40%;
-  width: 40px;
+  left: 52%;
+  width: 42px;
 }
 @media (min-width: 1024px) {
+  /* same columns as the hero grid: props are placed relative to the bust column */
+  .desk-props-in {
+    left: 50%;
+    right: auto;
+    width: min(100vw, 1360px);
+    transform: translateX(-50%);
+    padding: 0 2.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(380px, 36vw, 540px) clamp(170px, 16vw, 240px);
+    column-gap: 1.75rem;
+    align-items: end;
+    box-sizing: border-box;
+  }
+  .desk-props-in > * {
+    position: relative;
+    grid-row: 1;
+    grid-column: 2;
+    justify-self: start;
+  }
   .prop-laptop {
-    left: 4%;
-    width: 128px;
+    left: auto;
+    width: 252px;
+    margin-left: -178px;
   }
   .prop-mug {
-    left: 25%;
-    width: 32px;
+    left: auto;
+    width: 34px;
+    margin-left: 96px;
   }
   .prop-book {
-    left: 31%;
-    width: 60px;
+    left: auto;
+    width: 64px;
+    margin-left: 150px;
+  }
+}
+
+/* ---------- Wall decor: diploma, window, shelf (low contrast, behind the bust) ---------- */
+:root {
+  --sky-a: #0a1229;
+  --sky-b: #39407a;
+  --city: #080d1a;
+  --win-frame: #3a2a1d;
+  --lights: 1;
+  --moon: 1;
+  --decor-o: 0.62;
+}
+:root[data-theme='light'] {
+  --sky-a: #a9cde8;
+  --sky-b: #f8e3bd;
+  --city: #9aa3b4;
+  --win-frame: #f6efe0;
+  --lights: 0;
+  --moon: 0;
+  --decor-o: 0.92;
+}
+.decor {
+  position: absolute;
+  inset: 0 0 var(--fh);
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: var(--decor-o);
+  transition: opacity 0.65s ease;
+}
+.decor-in {
+  position: relative;
+  height: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+}
+.decor svg {
+  position: absolute;
+  display: block;
+  height: auto;
+}
+.decor .d-diploma,
+.decor .d-window {
+  display: none;
+}
+.decor .d-shelf {
+  right: 4px;
+  top: 70px;
+  width: 124px;
+}
+.sky-a {
+  stop-color: var(--sky-a);
+  transition: stop-color 0.65s ease;
+}
+.sky-b {
+  stop-color: var(--sky-b);
+  transition: stop-color 0.65s ease;
+}
+.city {
+  fill: var(--city);
+  transition: fill 0.65s ease;
+}
+.win-frame {
+  fill: var(--win-frame);
+  transition: fill 0.65s ease;
+}
+.moon {
+  fill: #f3ecd2;
+  opacity: var(--moon);
+  transition: opacity 0.65s ease;
+}
+.moon-glow {
+  fill: rgb(243 236 210 / 0.18);
+  opacity: var(--moon);
+  transition: opacity 0.65s ease;
+}
+.star {
+  fill: #fff;
+  opacity: calc(var(--moon) * 0.8);
+}
+.lights rect {
+  fill: #ffd98a;
+  opacity: var(--lights);
+  transition: opacity 0.65s ease;
+}
+/* warm light from the lamp across the decor when the theme is light */
+.decor-warm {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.65s ease;
+  background: radial-gradient(70% 90% at 84% 12%, rgb(255 214 150 / 0.35), transparent 70%);
+}
+:root[data-theme='light'] .decor-warm {
+  opacity: 1;
+}
+@media (min-width: 1024px) {
+  .decor .d-diploma {
+    display: block;
+    left: 56px;
+    top: 40px;
+    width: 150px;
+  }
+  .decor .d-window {
+    display: block;
+    right: 108px;
+    top: 86px;
+    width: 118px;
+  }
+  .decor .d-shelf {
+    right: 26px;
+    top: 262px;
+    width: 220px;
   }
 }
 
@@ -1279,7 +1439,6 @@
   z-index: 2;
   pointer-events: none;
   overflow: hidden;
-  border-radius: 20px;
   opacity: 0.3;
   transition: opacity 0.65s ease;
 }
@@ -1343,6 +1502,9 @@ html {
   .dust i {
     animation: none;
     opacity: 0.55;
+  }
+  .lap-cursor {
+    animation: none;
   }
   .avatar-bubble {
     transform: none;

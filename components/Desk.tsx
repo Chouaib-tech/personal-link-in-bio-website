@@ -6,34 +6,59 @@ export default function Desk({ className = '' }: { className?: string }) {
       <div className="desk-top" />
       <div className="desk-glow" />
       <div className="desk-props">
-        {/* laptop seen from behind: graphite lid, brass logo, faint screen glow around the edges */}
-        <svg viewBox="0 0 100 70" className="prop-laptop">
-          <defs>
-            <radialGradient id="lap-glow" cx=".5" cy=".4" r=".7">
-              <stop offset="0" stopColor="#8ec9ff" stopOpacity=".16" />
-              <stop offset=".5" stopColor="#8ec9ff" stopOpacity=".08" />
-              <stop offset="1" stopColor="#8ec9ff" stopOpacity="0" />
-            </radialGradient>
-            <linearGradient id="lap-lid" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#6c7378" />
-              <stop offset=".45" stopColor="#3d4348" />
-              <stop offset="1" stopColor="#23282c" />
-            </linearGradient>
-            <radialGradient id="lap-logo" cx=".35" cy=".3" r=".8">
-              <stop offset="0" stopColor="#fff1c8" />
-              <stop offset=".6" stopColor="#c79551" />
-              <stop offset="1" stopColor="#7e5b24" />
-            </radialGradient>
-          </defs>
-          <ellipse cx="50" cy="30" rx="62" ry="40" fill="url(#lap-glow)" />
-          <ellipse cx="52" cy="66" rx="52" ry="4" fill="#000" opacity=".35" />
-          <rect x="9" y="3" width="82" height="56" rx="3.5" fill="url(#lap-lid)" stroke="#0d1012" strokeWidth=".8" />
-          <rect x="9.8" y="3.8" width="80.4" height="1.6" rx=".8" fill="#fff" opacity=".22" />
-          <circle cx="50" cy="31" r="9" fill="#8ec9ff" opacity=".14" />
-          <circle cx="50" cy="31" r="4.2" fill="url(#lap-logo)" />
-          <rect x="4" y="59" width="92" height="6" rx="2.2" fill="#9aa1a6" stroke="#0d1012" strokeWidth=".6" />
-          <rect x="4.6" y="59.4" width="90.8" height="1.4" rx=".7" fill="#fff" opacity=".5" />
-        </svg>
+        <div className="desk-props-in">
+          {/* laptop turned toward him (CSS perspective on a flat drawing): code on the screen, blinking cursor */}
+          <div className="prop-laptop">
+            <div className="lap-pool" />
+            <svg viewBox="0 0 220 134" className="lap-svg">
+              <defs>
+                <radialGradient id="lap-halo" cx=".5" cy=".42" r=".6">
+                  <stop offset="0" stopColor="#6fe3d0" stopOpacity=".28" />
+                  <stop offset="1" stopColor="#6fe3d0" stopOpacity="0" />
+                </radialGradient>
+                <linearGradient id="lap-lid" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#6c7378" />
+                  <stop offset=".5" stopColor="#3b4146" />
+                  <stop offset="1" stopColor="#23282c" />
+                </linearGradient>
+                <linearGradient id="lap-screen" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#0d2a2e" />
+                  <stop offset="1" stopColor="#0a1c24" />
+                </linearGradient>
+                <linearGradient id="lap-base" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#c3c9cd" />
+                  <stop offset="1" stopColor="#7c848a" />
+                </linearGradient>
+              </defs>
+              <ellipse cx="110" cy="60" rx="130" ry="80" fill="url(#lap-halo)" />
+              <ellipse cx="112" cy="128" rx="104" ry="5" fill="#000" opacity=".4" />
+              <rect x="16" y="4" width="188" height="112" rx="6" fill="url(#lap-lid)" stroke="#0d1012" strokeWidth="1" />
+              <rect x="23" y="11" width="174" height="98" rx="2.5" fill="url(#lap-screen)" />
+              {/* code lines */}
+              <g className="lap-code">
+                <rect x="31" y="20" width="26" height="4" rx="1" fill="#ff8fa3" />
+                <rect x="61" y="20" width="44" height="4" rx="1" fill="#e6edf2" />
+                <rect x="39" y="30" width="38" height="4" rx="1" fill="#6fe3d0" />
+                <rect x="81" y="30" width="60" height="4" rx="1" fill="#e6edf2" />
+                <rect x="39" y="40" width="22" height="4" rx="1" fill="#ffd27a" />
+                <rect x="65" y="40" width="70" height="4" rx="1" fill="#9ab8c4" />
+                <rect x="47" y="50" width="52" height="4" rx="1" fill="#6fe3d0" />
+                <rect x="103" y="50" width="30" height="4" rx="1" fill="#ff8fa3" />
+                <rect x="47" y="60" width="34" height="4" rx="1" fill="#e6edf2" />
+                <rect x="85" y="60" width="50" height="4" rx="1" fill="#ffd27a" />
+                <rect x="39" y="70" width="46" height="4" rx="1" fill="#9ab8c4" />
+                <rect x="31" y="80" width="16" height="4" rx="1" fill="#ff8fa3" />
+                <rect x="51" y="80" width="64" height="4" rx="1" fill="#6fe3d0" />
+                <rect x="31" y="90" width="38" height="4" rx="1" fill="#e6edf2" />
+              </g>
+              <rect x="73" y="89" width="4" height="6" fill="#6fe3d0" className="lap-cursor" />
+              <rect x="23" y="11" width="174" height="98" rx="2.5" fill="#6fe3d0" opacity=".05" />
+              <rect x="23" y="11" width="174" height="14" fill="#fff" opacity=".04" />
+              {/* base */}
+              <path d="M6 116 H214 L204 128 H16 Z" fill="url(#lap-base)" stroke="#0d1012" strokeWidth=".8" />
+              <rect x="88" y="116" width="44" height="3.4" rx="1.4" fill="#5d646a" />
+            </svg>
+          </div>
         {/* small mug, deep green with a brass band */}
         <svg viewBox="0 0 30 34" className="prop-mug">
           <ellipse cx="14" cy="32" rx="12" ry="2.4" fill="#000" opacity=".35" />
@@ -53,6 +78,7 @@ export default function Desk({ className = '' }: { className?: string }) {
           <path d="M10 12 L10 22 L4 18 L4 8 Z" fill="#e8dcc0" />
           <rect x="30" y="13.5" width="14" height="1.6" transform="rotate(-4 30 13.5)" fill="#c79551" opacity=".9" />
         </svg>
+        </div>
       </div>
     </div>
   )

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ChevronDown } from 'lucide-react'
 import Avatar from '@/components/Avatar'
+import Decor from '@/components/Decor'
 import Desk from '@/components/Desk'
 import Doors from '@/components/Doors'
 import StatusRow from '@/components/StatusRow'
@@ -28,7 +29,7 @@ function Dust() {
 
 function LangToggle({ lang, onChange, label }: { lang: Lang; onChange: (l: Lang) => void; label: string }) {
   return (
-    <div role="group" aria-label={label} className="tc absolute right-4 top-4 z-20 flex rounded-full border border-line bg-panel p-0.5 text-[13px] font-bold">
+    <div role="group" aria-label={label} className="tc absolute right-4 top-4 z-20 flex rounded-full lg:right-[max(1rem,calc((100%-1360px)/2+1.5rem))] border border-line bg-panel p-0.5 text-[13px] font-bold">
       {(['fr', 'en'] as const).map((l) => (
         <button
           key={l}
@@ -81,53 +82,54 @@ export default function Card() {
   }
 
   return (
-    <main className="relative mx-auto w-full max-w-[1280px] px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:px-6 lg:pb-[calc(5rem+env(safe-area-inset-bottom))]">
-      <LangToggle lang={lang} onChange={setLang} label={c.langSwitch} />
+    <main className="relative w-full pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      {/* HERO = one full-bleed room: wall + wainscot + desk + floor, wall decor, the bust, the lamp, the name.
+          The room fades into the page at the bottom, so it flows into the doors hall below.
+          Phone: bust on top, text below the room. Desktop: text | bust | lamp, all inside the room. */}
+      <section className="hero relative lg:pb-[var(--fh)]">
+        <LangToggle lang={lang} onChange={setLang} label={c.langSwitch} />
+        <div className="mx-auto max-w-[1360px] px-4 lg:grid lg:grid-cols-[minmax(0,1fr)_clamp(380px,36vw,540px)_clamp(170px,16vw,240px)] lg:items-end lg:gap-x-7 lg:px-10 lg:pt-14">
+          <div className="stage relative -mx-4 px-4 pb-[var(--fh)] pt-3 lg:contents">
+            <div aria-hidden className="room-bg">
+              <i className="rb-wain" />
+              <i className="rb-skirt" />
+              <i className="rb-floor" />
+            </div>
+            <Decor />
 
-      {/* HERO = one room: wall + wainscot + floor, the bust, the lamp, the name.
-          Phone: bust on top, lamp small at the top right, text below. Desktop: text | bust | lamp. */}
-      <section
-        className="hero relative lg:grid lg:grid-cols-[minmax(0,1fr)_clamp(380px,36vw,540px)_clamp(170px,16vw,240px)] lg:items-end lg:gap-x-7 mt-3 lg:mt-4 lg:px-10 lg:pb-[var(--fh)] lg:pt-14 min-[1360px]:-mx-12"
-      >
-        <div className="stage relative pb-[var(--fh)] pt-3 lg:contents">
-          <div aria-hidden className="room-bg">
-            <i className="rb-wain" />
-            <i className="rb-skirt" />
-            <i className="rb-floor" />
+            <Avatar lang={lang} className="relative z-[1] w-[min(79%,300px)] lg:col-start-2 lg:row-start-1 lg:w-full" />
+
+            {/* The desk is in front of him (z above) and runs across the full width. */}
+            <Desk />
+
+            {/* Lamp (theme switch) standing on the desk, right side. Its base sits in the middle of the desk top. */}
+            <div
+              className="absolute right-0 bottom-[calc(var(--fh)+var(--deskH)-var(--deskTop)/2-var(--lampw)*0.128)] z-[4] w-[var(--lampw)] lg:relative lg:bottom-auto lg:right-auto lg:col-start-3 lg:row-start-1 lg:mb-[calc(var(--deskH)-var(--deskTop)/2-var(--lampw)*0.128)] lg:w-full"
+              onKeyDownCapture={() => (lampKey.current = true)}
+              onPointerDownCapture={() => (lampKey.current = false)}
+              onClickCapture={(e) => {
+                if (!lampKey.current) e.stopPropagation()
+              }}
+            >
+              <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
+              <p className="lamp-hint">{c.pullCord}</p>
+            </div>
+            <Dust />
           </div>
 
-          <Avatar lang={lang} className="relative z-[1] w-[min(79%,300px)] lg:col-start-2 lg:row-start-1 lg:w-full" />
-
-          {/* The desk is in front of him (z above); on desktop it spans under the bust and the lamp. */}
-          <Desk className="lg:col-span-2 lg:col-start-2 lg:row-start-1 lg:-ml-16 lg:-mr-10 lg:self-end" />
-
-          {/* Lamp (theme switch) standing on the desk, right side. Its base sits in the middle of the desk top. */}
-          <div
-            className="absolute -right-3.5 bottom-[calc(var(--fh)+var(--deskH)-var(--deskTop)/2-var(--lampw)*0.128)] z-[4] w-[var(--lampw)] lg:relative lg:bottom-auto lg:right-auto lg:col-start-3 lg:row-start-1 lg:mb-[calc(var(--deskH)-var(--deskTop)/2-var(--lampw)*0.128)] lg:w-full"
-            onKeyDownCapture={() => (lampKey.current = true)}
-            onPointerDownCapture={() => (lampKey.current = false)}
-            onClickCapture={(e) => {
-              if (!lampKey.current) e.stopPropagation()
-            }}
-          >
-            <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
-            <p className="lamp-hint">{c.pullCord}</p>
-          </div>
-          <Dust />
+          {/* Identity */}
+          <header className="rise relative z-[2] mt-7 text-center lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-center lg:text-left" style={{ '--i': 2 } as CSSProperties}>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-brass-text">{c.eyebrow}</p>
+            <h1 className="mt-2 text-balance font-display text-[40px] font-semibold leading-[1.04] tracking-tight lg:text-[clamp(2.2rem,4.2vw,4rem)]">
+              <span className="block">Ramoul Chouaib</span>
+              <span className="block font-normal text-brass-text">Taki Eddine</span>
+            </h1>
+            <p className="mx-auto mt-3 max-w-[22rem] text-balance text-[16px] font-semibold leading-snug text-brass-text lg:mx-0 lg:max-w-none lg:text-lg">{c.title}</p>
+            <span className="tc mt-4 inline-block rounded-full border border-line bg-panel px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em]">{c.badge}</span>
+            <StatusRow lang={lang} />
+            {about && <p className="mx-auto mt-4 max-w-[46ch] text-balance text-[15px] leading-relaxed text-muted lg:mx-0 lg:text-[16px]">{about}</p>}
+          </header>
         </div>
-
-        {/* Identity */}
-        <header className="rise relative z-[2] mt-7 text-center lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-center lg:text-left" style={{ '--i': 2 } as CSSProperties}>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-brass-text">{c.eyebrow}</p>
-          <h1 className="mt-2 text-balance font-display text-[40px] font-semibold leading-[1.04] tracking-tight lg:text-[clamp(2.2rem,4.2vw,4rem)]">
-            <span className="block">Ramoul Chouaib</span>
-            <span className="block font-normal text-brass-text">Taki Eddine</span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-[22rem] text-balance text-[16px] font-semibold leading-snug text-brass-text lg:mx-0 lg:max-w-none lg:text-lg">{c.title}</p>
-          <span className="tc mt-4 inline-block rounded-full border border-line bg-panel px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em]">{c.badge}</span>
-          <StatusRow lang={lang} />
-          {about && <p className="mx-auto mt-4 max-w-[46ch] text-balance text-[15px] leading-relaxed text-muted lg:mx-0 lg:text-[16px]">{about}</p>}
-        </header>
       </section>
 
       <a href="#doors-title" aria-label={c.seeDoors} className="chev mx-auto mt-6 grid h-11 w-11 place-items-center rounded-full text-brass-text lg:mt-8">
@@ -135,7 +137,7 @@ export default function Card() {
       </a>
 
       {/* DOORS: one continuous wall, then social buttons */}
-      <section aria-labelledby="doors-title" className="mt-6 scroll-mt-4 lg:mt-8">
+      <section aria-labelledby="doors-title" className="mx-auto mt-6 max-w-[1280px] scroll-mt-4 px-4 lg:mt-8 lg:px-6">
         <div aria-hidden className="hairline mb-8" />
         <h2 id="doors-title" className="text-center font-display text-2xl font-semibold tracking-tight lg:text-3xl">
           {c.doorsTitle}
