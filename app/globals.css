@@ -516,23 +516,66 @@
     linear-gradient(180deg, rgb(0 0 0 / 0.38), transparent 22%, transparent 48%, rgb(5 6 7 / 0.88) 100%),
     radial-gradient(ellipse 90% 85% at 50% 45%, transparent 55%, rgb(0 0 0 / 0.55) 100%);
 }
-.doorway[data-img] > svg {
+/* Brand icon + label: a small dark tag, centred on the door itself (the same centre line as the nameplate of the
+   closed door) and drawn in FRONT of the leaf, so the open leaf never hides any letter. It fades in as the door opens. */
+.doorway-chip {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 9%;
+  transform: translateX(-50%);
+  width: max-content; /* never wrap the label (an abspos box at left:50% only gets half the doorway to fit) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem 0.6rem 0.45rem;
+  border-radius: 12px;
+  color: #f1dcae;
+  background: rgb(6 8 10 / 0.62);
+  box-shadow: 0 0 0 1px rgb(212 165 104 / 0.24);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.door-slot[data-open='true'] .doorway-chip {
+  opacity: 1;
+  transition-delay: 0.18s;
+}
+.doorway-chip > svg {
   width: 1.4rem;
   height: 1.4rem;
 }
 @media (min-width: 1024px) {
-  .doorway[data-img] > svg {
+  .doorway-chip {
+    padding: 0.6rem 1.1rem 0.65rem;
+    border-radius: 16px;
+  }
+  .doorway-chip > svg {
     width: 2rem;
     height: 2rem;
   }
 }
-.doorway[data-img] > .doorway-label {
+.doorway-chip .doorway-label {
+  white-space: nowrap;
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.8);
 }
+@media (max-width: 639px) {
+  .doorway-chip .doorway-label {
+    --ls: 0.04em; /* small doorways: keep the longest labels compact */
+  }
+}
+@media (max-width: 339px) {
+  .doorway-chip .doorway-label {
+    --ls: 0;
+  }
+}
 .doorway-label {
+  --ls: 0.1em;
   font-size: 0.56rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--ls);
+  padding-left: var(--ls); /* balances the spacing that follows the last letter */
   text-transform: uppercase;
   color: #e9d3a0;
 }
@@ -1039,8 +1082,8 @@
 
 @media (min-width: 640px) {
   .doorway-label {
+    --ls: 0.18em;
     font-size: 0.7rem;
-    letter-spacing: 0.18em;
   }
   .plate {
     letter-spacing: 0.08em;
@@ -1166,6 +1209,7 @@
   .spill,
   .doorway > .doorway-img,
   .lever,
+  .doorway-chip,
   .brand-strip,
   .brand-strip::after {
     transition: none;

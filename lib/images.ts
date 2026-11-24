@@ -11,12 +11,14 @@ export const IMAGES = {
 } as const
 
 // Door previews (shown inside the open doorway). Portrait 360x800 = the doorway ratio (about 0.45), so they fit
-// exactly: crops, zoom and backdrops are decided per image in scripts/optimize-link-screens.py (BOX).
+// exactly. Originals live in source-images/links-screens/ (phone screenshots + icons); regenerate the WebP files
+// with `python3 scripts/optimize-link-screens.py`.
 // pos = object-position, only matters if you swap in an image with another ratio.
 const P = '/images/links-screens/'
 const portrait = (name: string) => ({ src: `${P}${name}.webp`, width: 360, height: 800, pos: '50% 50%' })
 export const PREVIEWS = {
   whatsapp: portrait('whatsapp'),
+  call: portrait('call'),
   email: portrait('gmail'),
   portfolio: portrait('portfolio'),
   linkedin: portrait('linkedin'),

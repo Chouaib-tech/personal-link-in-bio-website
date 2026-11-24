@@ -5,7 +5,8 @@ Premium mobile-first link-in-bio page (Next.js 14 static export, Tailwind, react
 ## Edit
 - Links and FR/EN copy: `lib/content.ts`
 - Image paths (single place): `lib/images.ts`
-- Swap photos: replace `source-images/portrait.jpg` (arch frame photo) and `source-images/waving.png` (small round avatar), tweak the crops in the script if needed, then `python3 scripts/optimize-images.py` (needs Pillow). The 1200x630 social card `public/images/og.jpg` is a separate file to replace.
+- Hero bust: replace `source-images/avatar-3d.png` (transparent cutout), then `python3 scripts/make-avatar-cutout.py`. Favicon: `source-images/waving.png`, then `python3 scripts/optimize-images.py`. The 1200x630 social card `public/images/og.jpg` is a separate file to replace.
+- Door previews (the picture inside each open door): put the phone screenshots / icons in `source-images/links-screens/` (facebook, github, instagram, linkedin, portfolio = screenshots; gmail, call, telegram, whatsapp = icons), then `python3 scripts/optimize-link-screens.py`. Only the generated WebP files go in `public/`. All scripts need Pillow + numpy.
 - Theme tokens: `tailwind.config.ts`
 
 ## Run

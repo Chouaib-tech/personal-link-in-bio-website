@@ -461,8 +461,6 @@ export default function Doors({ lang }: { lang: Lang }) {
                           <span aria-hidden className="doorway-shade" />
                         </>
                       )}
-                      {d.icon}
-                      <span className="doorway-label">{d.label}</span>
                     </span>
                     <span className="leaf">
                       <span className="leaf-face">
@@ -479,6 +477,11 @@ export default function Doors({ lang }: { lang: Lang }) {
                         <span className="leaf-shade" />
                       </span>
                       <span className="leaf-edge" />
+                    </span>
+                    {/* brand icon + label: a tag centred on the door, drawn in FRONT of the open leaf so the leaf never hides it */}
+                    <span className="doorway-chip">
+                      {d.icon}
+                      <span className="doorway-label">{d.label}</span>
                     </span>
                   </span>
                 </span>
