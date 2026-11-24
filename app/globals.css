@@ -40,7 +40,9 @@
   --hall-glow: 1;
   --mat: #162620;
   --mat-line: rgb(212 165 104 / 0.6);
-  --runner: rgb(0 0 0 / 0.28);
+  --runner: rgb(13 48 40 / 0.9); /* deep green carpet */
+  --lattice: rgb(224 187 120 / 0.14);
+  --silk: rgb(255 255 255 / 0.022);
   --desk-shadow: rgb(0 0 0 / 0.55);
 }
 :root[data-theme='light'] {
@@ -77,7 +79,9 @@
   --hall-glow: 0.5;
   --mat: #55685a;
   --mat-line: rgb(150 104 44 / 0.7);
-  --runner: rgb(90 62 28 / 0.2);
+  --runner: rgb(176 140 88 / 0.55); /* champagne carpet */
+  --lattice: rgb(120 82 30 / 0.2);
+  --silk: rgb(120 90 40 / 0.045);
   --desk-shadow: rgb(70 48 20 / 0.3);
 }
 
@@ -136,23 +140,38 @@
 }
 .scene {
   --lx: 1;
-  --sp: 12px; /* scene side padding */
-  --gx: 10px; /* gap between doors */
+  --sp: 16px; /* least wall kept beside the doors */
+  --gx: 20px; /* gap between doors (a wall light hangs in it) */
+  --maxd: 1300px; /* widest the row of doors gets */
+  --gw: 288px; /* width of the gallery of prints above the first row */
+  --gh: calc(min(100vw - 2 * var(--sp), var(--gw)) * 0.3467);
+  --pt: calc(var(--gh) + 36px + var(--G) * 0.62); /* wall above the first row: crown + gallery + light */
   --fh: 44px; /* floor height */
   --sk: 18px; /* skirting height */
   --G: 30px; /* wall space between a floor and the next row */
-  --R: 16px;
+  --R: 0px;
   /* polished floor with a darker runner band (thin brass lines) down its middle */
   --floor-bg:
+    /* woven gold lattice inside the carpet */
+    repeating-linear-gradient(45deg, var(--lattice) 0 1px, transparent 1px 9px) 0 20% / 100% 62% no-repeat,
+    repeating-linear-gradient(-45deg, var(--lattice) 0 1px, transparent 1px 9px) 0 20% / 100% 62% no-repeat,
     linear-gradient(
       180deg,
       transparent 20%,
-      rgb(212 165 104 / 0.26) 20%,
-      rgb(212 165 104 / 0.26) calc(20% + 1px),
+      rgb(224 187 120 / 0.7) 20%,
+      rgb(224 187 120 / 0.7) calc(20% + 1px),
       var(--runner) calc(20% + 1px),
+      var(--runner) calc(20% + 5px),
+      rgb(224 187 120 / 0.32) calc(20% + 5px),
+      rgb(224 187 120 / 0.32) calc(20% + 6px),
+      var(--runner) calc(20% + 6px),
+      var(--runner) calc(82% - 6px),
+      rgb(224 187 120 / 0.32) calc(82% - 6px),
+      rgb(224 187 120 / 0.32) calc(82% - 5px),
+      var(--runner) calc(82% - 5px),
       var(--runner) calc(82% - 1px),
-      rgb(212 165 104 / 0.26) calc(82% - 1px),
-      rgb(212 165 104 / 0.26) 82%,
+      rgb(224 187 120 / 0.7) calc(82% - 1px),
+      rgb(224 187 120 / 0.7) 82%,
       transparent 82%
     ),
     linear-gradient(180deg, rgb(0 0 0 / 0.5), transparent 28%), linear-gradient(180deg, var(--floor-hi), var(--floor-lo));
@@ -160,11 +179,10 @@
   --th: 5px; /* door threshold */
   --stile: 2px; /* gap between wainscot panels */
   position: relative;
-  border-radius: var(--R);
+  /* the hall is full width, like the room above it: wall edge to wall edge */
   background-color: var(--wall);
-  box-shadow:
-    0 0 0 1px var(--line),
-    0 24px 48px -24px rgb(0 0 0 / 0.5);
+  /* silk wall covering: very fine vertical stripes above the wainscot */
+  background-image: repeating-linear-gradient(90deg, var(--silk) 0 2px, transparent 2px 15px);
   /* keeps the raster scale fixed for the whole push AND the zoom-out (no re-raster at x14) */
   will-change: transform;
   transition:
@@ -210,13 +228,17 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   column-gap: var(--gx);
   row-gap: calc(var(--fh) + var(--G));
-  padding: 30px var(--sp) var(--fh);
+  /* the row of doors is a centred box inside the full-width hall; everything beside it is plain wall */
+  width: min(calc(100% - 2 * var(--sp)), var(--maxd));
+  margin-inline: auto;
+  padding: var(--pt) 0 var(--fh);
 }
 
 .door-slot {
   position: relative;
   min-width: 0;
-  --rw: calc(300% + 2 * var(--gx) + 2 * var(--sp)); /* full wall width, in li widths */
+  --rw: calc(300% + 2 * var(--gx)); /* width of the row of doors, in li widths */
+  --ext: max(0px, calc((100vw - var(--rw)) / 2)); /* wall beside the row of doors */
   --shift: 0px;
   --el: calc(var(--gx) / 2); /* how far the wainscot panel reaches left / right of the door */
   --er: calc(var(--gx) / 2);
@@ -231,10 +253,10 @@
   --grain: var(--grain-c);
 }
 .door-slot[data-sm-start] {
-  --el: calc(var(--sp) + var(--shift));
+  --el: calc(var(--ext) + var(--shift));
 }
 .door-slot[data-sm-end] {
-  --er: calc(var(--sp) + var(--shift));
+  --er: calc(var(--ext) + var(--shift));
 }
 /* other doors dim while one is entered */
 .doors[data-busy='true'] .door-slot:not([data-entering='true']) > .door-link,
@@ -252,8 +274,8 @@
 .door-slot[data-sm-start]::after {
   content: '';
   position: absolute;
-  left: calc(-1 * (var(--sp) + var(--shift)));
-  width: var(--rw);
+  left: calc(-1 * (var(--shift) + var(--ext)));
+  width: max(var(--rw), 100vw);
   pointer-events: none;
 }
 /* skirting board runs behind the frames along the base of the wall */
@@ -283,14 +305,15 @@
   display: none;
   position: absolute;
   z-index: -1;
-  left: calc(-1 * (var(--sp) + var(--shift)));
-  width: var(--rw);
-  top: calc(-1 * var(--G) + 2px);
-  height: 7px;
+  left: calc(-1 * (var(--shift) + var(--ext)));
+  width: max(var(--rw), 100vw);
+  top: calc(-1 * var(--G) + 1px);
+  height: 9px;
   pointer-events: none;
   background: linear-gradient(180deg, var(--skirt-hi), var(--skirt-lo));
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.18),
+    inset 0 -2px 0 rgb(212 165 104 / 0.4),
     0 3px 5px -1px rgb(0 0 0 / 0.35);
 }
 .cornice[data-c-sm] {
@@ -303,14 +326,14 @@
   display: none;
   position: absolute;
   z-index: -2;
-  left: calc(-1 * (var(--sp) + var(--shift)));
-  width: var(--rw);
+  left: calc(-1 * (var(--shift) + var(--ext)));
+  width: max(var(--rw), 100vw);
   bottom: 0;
   height: 30%;
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    var(--rail-hi) 0 1px,
+    rgb(224 187 120 / 0.6) 0 1px,
     var(--rail) 1px calc(var(--rail-h) - 2px),
     var(--rail-lo) calc(var(--rail-h) - 2px) var(--rail-h),
     var(--wain) var(--rail-h)
@@ -348,6 +371,7 @@
   content: '';
   position: absolute;
   inset: 5px;
+  border: 1px solid rgb(224 187 120 / 0.3); /* brass beading around each panel */
   box-shadow:
     inset calc(var(--lx) * -2px) 2px 3px rgb(0 0 0 / 0.22),
     inset calc(var(--lx) * 1px) -1px 0 rgb(255 255 255 / 0.06);
@@ -1001,43 +1025,162 @@
 }
 .sconce {
   display: none;
+  position: absolute;
+  z-index: -1;
+  left: calc(100% + var(--gx) / 2 - 5px);
+  top: 30%;
+  width: 10px;
+  height: 28px;
+  pointer-events: none;
+}
+.sconce[data-sm-gap] {
+  display: block;
+}
+/* the warm halo it throws on the wall (up and down, like a real wall washer) */
+.sconce::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 104px;
+  height: 150px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgb(255 214 150 / 0.3), rgb(255 200 120 / 0.1) 55%, transparent 76%);
+  opacity: var(--hall-glow);
+  transition: opacity 0.65s ease;
+}
+/* brass caps above and below a pleated, glowing shade */
+.sconce::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, #6f4d1c, #f1d594 35%, #b98b46 70%, #6a4a1a) top / 100% 3px no-repeat,
+    linear-gradient(90deg, #6f4d1c, #f1d594 35%, #b98b46 70%, #6a4a1a) bottom / 100% 3px no-repeat,
+    repeating-linear-gradient(90deg, rgb(150 100 30 / 0.28) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, #ffcf86, #fff3d0 45%, #ffcf86) center / 100% calc(100% - 6px) no-repeat;
+  box-shadow: 0 0 8px 1px rgb(255 205 130 / 0.5);
 }
 @media (min-width: 1024px) {
   .sconce {
-    display: block;
-    position: absolute;
-    z-index: -1;
-    left: calc(100% + var(--gx) / 2 - 7px);
-    top: 33%;
-    width: 14px;
-    height: 34px;
-    pointer-events: none;
+    left: calc(100% + var(--gx) / 2 - 8px);
+    top: 29%;
+    width: 16px;
+    height: 46px;
   }
-  .door-slot[data-lg-end] > .sconce {
+  .sconce[data-sm-gap]:not([data-lg-gap]) {
     display: none;
   }
+  .sconce[data-lg-gap] {
+    display: block;
+  }
   .sconce::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 150px;
-    height: 190px;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(ellipse 50% 50% at 50% 50%, rgb(255 214 150 / 0.28), rgb(255 200 120 / 0.09) 55%, transparent 76%);
-    opacity: var(--hall-glow);
-    transition: opacity 0.65s ease;
+    width: 190px;
+    height: 250px;
   }
   .sconce::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 3px;
     background:
-      linear-gradient(90deg, #6f4d1c, #e9cd8f 35%, #b98b46 70%, #6a4a1a) top / 100% 4px no-repeat,
-      linear-gradient(90deg, #6f4d1c, #e9cd8f 35%, #b98b46 70%, #6a4a1a) bottom / 100% 4px no-repeat,
-      linear-gradient(90deg, #ffcf86, #fff3d0 45%, #ffcf86) center / 72% calc(100% - 8px) no-repeat;
-    box-shadow: 0 0 10px 2px rgb(255 205 130 / 0.45);
+      linear-gradient(90deg, #6f4d1c, #f1d594 35%, #b98b46 70%, #6a4a1a) top / 100% 5px no-repeat,
+      linear-gradient(90deg, #6f4d1c, #f1d594 35%, #b98b46 70%, #6a4a1a) bottom / 100% 5px no-repeat,
+      repeating-linear-gradient(90deg, rgb(150 100 30 / 0.28) 0 1px, transparent 1px 4px),
+      linear-gradient(90deg, #ffcf86, #fff3d0 45%, #ffcf86) center / 100% calc(100% - 10px) no-repeat;
+    box-shadow: 0 0 12px 2px rgb(255 205 130 / 0.5);
+  }
+}
+
+/* ---------- HOTEL HALL: crown moulding with cove light, brass trim, art + console at the row ends (static) ---------- */
+/* crown moulding with a row of dentils along the top of the hall; the cove light behind it washes the wall below */
+.crown {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 16px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.3) 0 3px, transparent 3px 7px) 0 100% / 100% 4px no-repeat,
+    linear-gradient(180deg, transparent 0 11px, rgb(0 0 0 / 0.22) 11px 12px, transparent 12px),
+    linear-gradient(180deg, var(--skirt-hi), var(--skirt-lo));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 1px 0 rgb(255 226 170 / 0.7),
+    0 3px 7px rgb(255 205 130 / 0.45),
+    0 7px 14px -2px rgb(0 0 0 / 0.4);
+}
+.crown::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 64px;
+  background: linear-gradient(180deg, rgb(255 212 142 / 0.34), rgb(255 212 142 / 0.1) 45%, transparent);
+  opacity: var(--hall-glow);
+  transition: opacity 0.65s ease;
+}
+/* the same cove light under the cornice of every other row */
+.cornice::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 40px;
+  background: linear-gradient(180deg, rgb(255 212 142 / 0.28), transparent);
+  opacity: var(--hall-glow);
+}
+.console-end {
+  display: none;
+  position: absolute;
+  z-index: 0;
+  bottom: -14px; /* the legs stand a little way into the floor */
+  height: 66%;
+  aspect-ratio: 2 / 3;
+  left: calc(-1 * (var(--shift) + var(--ext) / 2));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.console-end[data-side='r'] {
+  left: calc(100% + var(--shift) + var(--ext) / 2);
+  transform: translateX(-50%) scaleX(-1);
+}
+.gallery {
+  position: absolute;
+  z-index: 1;
+  top: 26px;
+  left: 50%;
+  width: min(calc(100vw - 2 * var(--sp)), var(--gw));
+  aspect-ratio: 300 / 104;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.hall-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+@media (min-width: 1024px) {
+  .crown {
+    height: 20px;
+  }
+  .gallery {
+    top: 30px;
+  }
+}
+/* only when the wall beside the doors is wide enough for it */
+@media (min-width: 1640px) {
+  .console-end {
+    display: block;
+  }
+  /* the prints above the row are only for narrower screens: here the art stands beside the doors */
+  .gallery {
+    display: none;
+  }
+  .scene {
+    --pt: calc(var(--G) + 8px);
   }
 }
 
@@ -1050,7 +1193,8 @@
 .doors[data-reveal] .reflect,
 .doors[data-reveal] .contact,
 .doors[data-reveal] .mat,
-.doors[data-reveal] .brand-strip {
+.doors[data-reveal] .brand-strip,
+.doors[data-reveal] .console-end {
   transition: opacity 0.7s ease-out calc(var(--gi) * 60ms);
 }
 .doors[data-reveal='armed'] .door-link {
@@ -1060,7 +1204,8 @@
 .doors[data-reveal='armed'] .reflect,
 .doors[data-reveal='armed'] .contact,
 .doors[data-reveal='armed'] .mat,
-.doors[data-reveal='armed'] .brand-strip {
+.doors[data-reveal='armed'] .brand-strip,
+.doors[data-reveal='armed'] .console-end {
   opacity: 0;
 }
 
@@ -1068,6 +1213,20 @@
 .door-slot[data-entering='true'] .leaf,
 .door-slot[data-entering='true'] .leaf-shade {
   transition-duration: 0.25s;
+}
+/* small text and thin details are what shimmer when the picture is magnified: fade them out as the camera pushes in */
+.door-slot[data-entering='true'] .doorway-tag,
+.door-slot[data-entering='true'] .door-hint {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  transition-delay: 0s;
+}
+/* phone: a tap on a door is a tap (no double-tap zoom wait, no text selection or callout flicker) */
+.door-link {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 /* last frames of the push: dark overlay (also portaled to <body>) */
 .flood {
@@ -1100,22 +1259,22 @@
 }
 @media (min-width: 1024px) {
   .scene {
-    --sp: 36px;
-    --gx: 24px;
+    --sp: 24px;
+    --gx: 36px;
     --fh: 70px;
     --sk: 26px;
-    --R: 20px;
     --G: 48px;
+    --gw: 400px;
   }
   .doors {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    padding: 56px var(--sp) var(--fh);
+    padding: var(--pt) 0 var(--fh);
   }
   .door-slot {
     flex: 0 0 calc((100% - 4 * var(--gx)) / 5);
-    --rw: calc(500% + 4 * var(--gx) + 2 * var(--sp));
+    --rw: calc(500% + 4 * var(--gx));
   }
   /* second row (4 doors, centred) starts half a door in */
   .door-slot[data-lg-shift] {
@@ -1130,8 +1289,8 @@
   .door-slot[data-lg-start]::after {
     content: '';
     position: absolute;
-    left: calc(-1 * (var(--sp) + var(--shift)));
-    width: var(--rw);
+    left: calc(-1 * (var(--shift) + var(--ext)));
+    width: max(var(--rw), 100vw);
     pointer-events: none;
   }
   .door-slot[data-lg-start]::before {
@@ -1172,12 +1331,6 @@
     --el: calc(var(--gx) / 2);
     --er: calc(var(--gx) / 2);
   }
-  .door-slot[data-lg-start] {
-    --el: calc(var(--sp) + var(--shift));
-  }
-  .door-slot[data-lg-end] {
-    --er: calc(var(--sp) + var(--shift));
-  }
   .door-slot[data-sm-start]:not([data-lg-start]) > .wainscot {
     display: none;
   }
@@ -1198,11 +1351,9 @@
   }
 }
 @media (min-width: 1360px) {
-  /* five doors need a little more wall than the text column */
   .scene {
-    --sp: 40px;
-    --gx: 28px;
-    margin-inline: -48px;
+    --sp: 32px;
+    --gx: 44px;
   }
 }
 
@@ -1230,7 +1381,8 @@
   .doors[data-reveal] .reflect,
   .doors[data-reveal] .contact,
   .doors[data-reveal] .mat,
-  .doors[data-reveal] .brand-strip {
+  .doors[data-reveal] .brand-strip,
+  .doors[data-reveal] .console-end {
     opacity: 1;
     transform: none;
     transition: none;
@@ -1526,7 +1678,7 @@
    without ever reaching his chin, hands or watch. The avatar's cut-off bottom stays hidden behind the desk. */
 .hero {
   --A: min(calc((100vw - 2rem) * 0.79), 300px); /* the avatar's width (phone / tablet) */
-  --lampw: 142px;
+  --lampw: clamp(150px, 44.6vw, 184px); /* phone: about a quarter bigger than before */
   --deskTop: calc(var(--A) * 0.184);
   --deskH: calc(var(--deskTop) + max(40px, calc(var(--A) * 0.14)));
   --deskDrop: calc(var(--A) * 0.1);
@@ -1768,9 +1920,14 @@
   display: block;
   height: auto;
 }
-.decor .d-diploma,
-.decor .d-window {
+.decor .d-diploma {
   display: none;
+}
+/* phone: the night window hangs on the wall at the left, above the shoulder; the shelf is on the right */
+.decor .d-window {
+  left: 10px;
+  top: 78px; /* just under the greeting bubble */
+  width: clamp(54px, 16vw, 76px);
 }
 .decor .d-shelf {
   right: 4px;
@@ -1835,6 +1992,7 @@
 @media (min-width: 1024px) {
   .decor .d-window {
     display: block;
+    left: auto;
     right: clamp(40px, 7.5vw, 108px);
     top: clamp(60px, 6vw, 86px);
     width: clamp(84px, 8.2vw, 118px);

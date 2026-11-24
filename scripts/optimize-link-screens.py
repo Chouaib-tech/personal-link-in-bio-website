@@ -3,7 +3,8 @@
 Every preview is a PORTRAIT 360x800 image: the doorway is about 0.45 wide / tall, so it fits exactly.
   - phone screenshots (facebook, github, instagram, linkedin, portfolio): at their real size, slid to the right
     so the left part (profile photo + name) is not hidden behind the open door leaf
-  - icons (gmail, call, telegram, whatsapp): the icon on a portrait backdrop, just clear of the open door leaf
+  - cards (telegram, whatsapp, call): his own designed picture; only its middle part is used, slid right of the open door leaf
+  - icon (gmail): the icon on a portrait backdrop, just clear of the open door leaf
 
 To change a picture: put the new file in source-images/links-screens/ with the same name
 (png / jpg / jpeg / webp), then run
@@ -24,7 +25,10 @@ ICON_W = 220  # width of the icon itself, in preview pixels (the open door leaf 
 SHIFT = int(W * 0.27)  # the open door leaf hides the left ~27% of the doorway: screenshots slide right by this much
 
 SCREENS = ["facebook", "github", "instagram", "linkedin", "portfolio"]
-ICONS = ["gmail", "call", "telegram", "whatsapp"]
+ICONS = ["gmail"]
+# designed cards (about square, content in the middle): name -> (content box x0, y0, x1, y1 in the source picture, scale)
+CARDS = {"telegram": ((380, 335, 855, 965), 0.5), "whatsapp": ((325, 250, 925, 905), 0.41), "call": ((210, 375, 865, 1025), 0.38)}
+CARD_X, CARD_Y = 0.60, 0.42  # where the middle of the card content sits (fractions of the preview), clear of the open leaf
 
 
 def find(name):
@@ -72,6 +76,26 @@ def screen(name):
     return canvas
 
 
+def card(name):
+    """A designed card (dark picture, content in the middle). The content is scaled down so all of it fits the part of
+    the doorway the open leaf does not hide; the rest of the picture is a blurred copy of itself, so it has no edges."""
+    (x0, y0, x1, y1), scale = CARDS[name]
+    im = ImageOps.exif_transpose(Image.open(find(name))).convert("RGB")
+    canvas = blurred_cover(im, blur=24, dark=0.45)
+    big = im.resize((round(im.width * scale), round(im.height * scale)), Image.LANCZOS)
+    ox = round(CARD_X * W - (x0 + x1) / 2 * scale)
+    oy = round(CARD_Y * H - (y0 + y1) / 2 * scale)
+    f = 90  # soft top / bottom edge where the card ends
+    mask = Image.new("L", big.size, 255)
+    d = ImageDraw.Draw(mask)
+    for i in range(f):
+        v = int(255 * i / f)
+        d.line([(0, i), (big.width, i)], fill=v)
+        d.line([(0, big.height - 1 - i), (big.width, big.height - 1 - i)], fill=v)
+    canvas.paste(big, (ox, oy), mask)
+    return canvas
+
+
 def icon_on_dark(name, threshold):
     """Icon photographed on a dark backdrop (telegram, whatsapp): blurred copy as backdrop, soft-edged icon on top."""
     im = ImageOps.exif_transpose(Image.open(find(name))).convert("RGB")
@@ -100,60 +124,6 @@ def icon_on_white(name):
     return canvas
 
 
-def cut_out_checkerboard(im):
-    """The call icon was saved with a fake transparency checkerboard. Flood it from the outside; the gold rim stops it."""
-    a = np.asarray(im).astype(int)
-    r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    lum, sat = a.mean(axis=2), a.max(axis=2) - a.min(axis=2)
-    gray = (abs(r - g) < 12) & (abs(g - b) < 12) & (lum < 80)  # checker squares: dark neutral greys
-
-    def dil(m, n=1):
-        for _ in range(n):
-            p = np.pad(m, 1)
-            m = p[1:-1, 1:-1] | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:] | p[:-2, :-2] | p[:-2, 2:] | p[2:, :-2] | p[2:, 2:]
-        return m
-
-    free = gray & ~dil(~gray, 2)  # close hairline gaps in the rim first
-    reach = np.zeros_like(free)
-    reach[0, :] = reach[-1, :] = reach[:, 0] = reach[:, -1] = True
-    reach &= free
-    while True:
-        new = dil(reach) & free
-        if new.sum() == reach.sum():
-            break
-        reach = new
-    outside = (dil(reach, 3) & gray) | reach
-    outside |= dil(outside, 3) & (lum < 105) & (sat < 55)  # the dark fringe just outside the rim
-    alpha = Image.fromarray(((~outside) * 255).astype("uint8"), "L")
-    return alpha.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.7))
-
-
-def icon_call(name):
-    """Black + gold handset, cut out, on a green radial backdrop (the Call door's brand colour)."""
-    im = ImageOps.exif_transpose(Image.open(find(name))).convert("RGB")
-    alpha = cut_out_checkerboard(im)
-    x0, y0, x1, y1 = bbox(np.asarray(alpha) > 128, trim=0.0)
-    pad = 6
-    box = (max(0, x0 - pad), max(0, y0 - pad), min(im.width, x1 + pad), min(im.height, y1 + pad))
-    crop, a_crop = im.crop(box), alpha.crop(box)
-    # radial green backdrop, brightest behind the handset
-    yy, xx = np.mgrid[0:H, 0:W]
-    d = np.hypot((xx - CENTER_X * W) / (0.95 * W), (yy - CENTER_Y * H) / (0.62 * H)).clip(0, 1)
-    t = (d * d * (3 - 2 * d))[..., None]
-    inner, outer = np.array([72, 160, 104]), np.array([11, 30, 21])
-    canvas = Image.fromarray((inner * (1 - t) + outer * t).astype("uint8"), "RGB")
-    scale = min(ICON_W / (x1 - x0), 0.46 * H / (y1 - y0))
-    # soft drop shadow, then the handset
-    sh = Image.new("RGB", crop.size, (0, 0, 0))
-    shadow_mask = a_crop.point(lambda v: int(v * 0.38)).filter(ImageFilter.GaussianBlur(7))
-    shadow = sh.resize((round(crop.width * scale), round(crop.height * scale)))
-    sm = shadow_mask.resize(shadow.size, Image.LANCZOS)
-    x, y = round(CENTER_X * W - shadow.width / 2), round(CENTER_Y * H - shadow.height / 2)
-    canvas.paste(shadow, (x + 5, y + 9), sm)
-    paste_centered(canvas, crop, scale, alpha=a_crop)
-    return canvas
-
-
 def save_webp(img, path, limit_kb=40):
     for q in range(90, 38, -4):
         img.save(path, "WEBP", quality=q, method=6)
@@ -168,10 +138,10 @@ if __name__ == "__main__":
         old.unlink()  # publish only the WebP files
     jobs = {n: (lambda n=n: screen(n)) for n in SCREENS}
     jobs["gmail"] = lambda: icon_on_white("gmail")
-    jobs["call"] = lambda: icon_call("call")
-    jobs["telegram"] = lambda: icon_on_dark("telegram", 45)
-    jobs["whatsapp"] = lambda: icon_on_dark("whatsapp", 70)
-    for name in SCREENS + ICONS:
+    jobs["call"] = lambda: card("call")
+    jobs["telegram"] = lambda: card("telegram")
+    jobs["whatsapp"] = lambda: card("whatsapp")
+    for name in SCREENS + ICONS + list(CARDS):
         path = out / f"{name}.webp"
         q = save_webp(jobs[name](), path)
         print(f"{name}: {W}x{H} {path.stat().st_size / 1024:.0f}KB (q={q})")

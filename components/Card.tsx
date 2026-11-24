@@ -6,6 +6,7 @@ import Avatar from '@/components/Avatar'
 import Decor from '@/components/Decor'
 import Desk from '@/components/Desk'
 import Doors from '@/components/Doors'
+import { Gallery } from '@/components/HallArt'
 import StatusRow from '@/components/StatusRow'
 import PullLamp from '@/components/ui/pull-lamp'
 import { ABOUT_EN, ABOUT_FR, COPY, type Lang } from '@/lib/content'
@@ -136,16 +137,22 @@ export default function Card() {
         <ChevronDown aria-hidden className="h-6 w-6" strokeWidth={2.2} />
       </a>
 
-      {/* DOORS: one continuous wall, then social buttons */}
-      <section aria-labelledby="doors-title" className="mx-auto mt-6 max-w-[1280px] scroll-mt-4 px-4 lg:mt-8 lg:px-6">
-        <div aria-hidden className="hairline mb-8" />
-        <h2 id="doors-title" className="text-center font-display text-2xl font-semibold tracking-tight lg:text-3xl">
-          {c.doorsTitle}
-        </h2>
-        <p className="mx-auto mb-5 mt-2 min-h-[2.6rem] max-w-md text-balance text-center text-sm leading-snug text-muted sm:min-h-0">
-          {fine ? c.doorsHintMouse : c.doorsHintTouch}
-        </p>
+      {/* DOORS: one full-width hall (crown, wall, wainscot, floor), doors in the middle, plants and garlands between them */}
+      <section aria-labelledby="doors-title" className="mt-6 scroll-mt-4 lg:mt-8">
+        <div className="mx-auto max-w-[1280px] px-4 lg:px-6">
+          <div aria-hidden className="hairline mb-8" />
+          <h2 id="doors-title" className="text-center font-display text-2xl font-semibold tracking-tight lg:text-3xl">
+            {c.doorsTitle}
+          </h2>
+          <p className="mx-auto mb-5 mt-2 min-h-[2.6rem] max-w-md text-balance text-center text-sm leading-snug text-muted sm:min-h-0">
+            {fine ? c.doorsHintMouse : c.doorsHintTouch}
+          </p>
+        </div>
         <div className="scene rise" style={{ '--i': 4 } as React.CSSProperties}>
+          <span aria-hidden className="crown" />
+          <span aria-hidden className="gallery">
+            <Gallery className="hall-svg" />
+          </span>
           <Doors lang={lang} />
         </div>
       </section>

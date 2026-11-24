@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Mous
 import { createPortal } from 'react-dom'
 import { Globe, Mail, Phone } from 'lucide-react'
 import { BrandIcon, type BrandName } from '@/components/BrandIcons'
+import { Console, HallDefs } from '@/components/HallArt'
 import { COPY, GMAIL_COMPOSE, LINKS, type Lang } from '@/lib/content'
 import { PREVIEWS, type PreviewKey } from '@/lib/images'
 
@@ -57,6 +58,8 @@ const REDUCED_NAVIGATE_AT = 150
 const TAB_FALLBACK_RESET = 1200 // zoom back out if the new tab did not hide this one
 const ALIVE_RESET = 1500 // tel / mailto
 const PUSH_SCALE = 14
+// Art + console at the two ends of each row (wide screens only, in the empty wall beside the doors)
+const ROW_END: Record<number, 'l' | 'r'> = { 0: 'l', 4: 'r', 5: 'l', 8: 'r' }
 const SCROLL_KEYS = [' ', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End']
 
 /** Shared brass gradients, referenced by every lever / keyhole (declared once). */
@@ -344,7 +347,10 @@ export default function Doors({ lang }: { lang: Lang }) {
         el.style.transformOrigin = `${dx - sr.left}px ${dy - sr.top}px`
         el.style.setProperty('--tx', `${window.innerWidth / 2 - dx}px`)
         el.style.setProperty('--ty', `${window.innerHeight / 2 - dy}px`)
-        el.style.setProperty('--s', String(PUSH_SCALE))
+        // Zoom only until the doorway covers the screen (+15%). A fixed x14 turned the whole hall into a huge texture
+        // that shimmered and "vibrated" on phones.
+        const cover = Math.max(window.innerWidth / dr.width, window.innerHeight / dr.height) * 1.15
+        el.style.setProperty('--s', String(Math.min(PUSH_SCALE, Math.max(3, cover)).toFixed(2)))
         el.setAttribute('data-push', 'true')
       }
 
@@ -377,10 +383,15 @@ export default function Doors({ lang }: { lang: Lang }) {
   return (
     <>
       <BrassDefs />
+      <HallDefs />
       <ul ref={listRef} className="doors" data-busy={!!enter} data-reveal={reveal === 'off' ? undefined : reveal}>
         {doors.map((d, i) => {
           const isOpen = openKey === d.key
           const isEntering = enter?.key === d.key
+          // a wall light hangs in the gap to the right of this door (not after the last door of a row)
+          const smGap = i % 3 !== 2 && i < 8
+          const lgGap = i !== 4 && i !== 8
+          const end = ROW_END[i]
           return (
             <li
               key={d.key}
@@ -402,7 +413,12 @@ export default function Doors({ lang }: { lang: Lang }) {
               <span aria-hidden className="wpanel" />
               <span aria-hidden className="cornice" data-c-sm={i > 0 && i % 3 === 0 ? '' : undefined} data-c-lg={i === 5 ? '' : undefined} />
               <span aria-hidden className="spot" />
-              <span aria-hidden className="sconce" />
+              <span aria-hidden className="sconce" data-sm-gap={smGap ? '' : undefined} data-lg-gap={lgGap ? '' : undefined} />
+              {end && (
+                <span aria-hidden className="console-end" data-side={end}>
+                  <Console className="hall-svg" />
+                </span>
+              )}
               <a
                 href={d.href}
                 aria-label={`${c.open} ${d.label}`}
