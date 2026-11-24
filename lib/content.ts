@@ -9,7 +9,7 @@ export const LINKS = {
   github: 'https://github.com/Chouaib-tech',
   telegram: 'https://t.me/Chouaibtakieddine',
   instagram: 'https://instagram.com/chouaib._.ramoul',
-  facebook: 'https://facebook.com/ChouaibRamoul',
+  facebook: 'https://www.facebook.com/chouaib.ramoul.9',
 } as const
 
 // Write 1-2 sentences about me here (leave empty to hide the paragraph).
