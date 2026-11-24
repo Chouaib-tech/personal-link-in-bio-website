@@ -11,6 +11,19 @@ const ICON = 'h-7 w-7 sm:h-9 sm:w-9 lg:h-12 lg:w-12'
 
 type DoorDef = { key: string; label: string; href: string; icon: ReactNode }
 
+// Brand light: the strip under each door and the dot on its nameplate. [colour, optional second colour]
+const BRAND: Record<string, [string, string?]> = {
+  whatsapp: ['#25d366'],
+  call: ['#7ddc5b'],
+  email: ['#ea4335'],
+  portfolio: ['#d4a568'],
+  linkedin: ['#2f8fe8'],
+  github: ['#c9bbff', '#ffffff'],
+  telegram: ['#2aabee'],
+  instagram: ['#f58529', '#dd2a7b'],
+  facebook: ['#3b86f7'],
+}
+
 const brand = (name: BrandName) => <BrandIcon name={name} className={ICON} />
 const stroke = { 'aria-hidden': true, className: ICON, strokeWidth: 1.75 } as const
 
@@ -57,6 +70,14 @@ function BrassDefs() {
           <stop offset=".55" stopColor="#b98a45" />
           <stop offset="1" stopColor="#6f4d1c" />
         </linearGradient>
+        <clipPath id="lever-clip">
+          <path d="M34 8.2 L9 8.8 Q3 9.2 3 12 Q3 14.8 9 15.2 L34 15.8 Z" />
+        </clipPath>
+        <linearGradient id="lever-shine" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#fff" stopOpacity="0" />
+          <stop offset=".5" stopColor="#fff" stopOpacity=".95" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
         <radialGradient id="brass-rose" cx=".34" cy=".3" r=".85">
           <stop offset="0" stopColor="#fff1c8" />
           <stop offset=".35" stopColor="#d9b06a" />
@@ -81,6 +102,8 @@ function Lever() {
       <path d="M34 8.2 L9 8.8 Q3 9.2 3 12 Q3 14.8 9 15.2 L34 15.8 Z" fill="url(#brass-bar)" stroke="rgb(0 0 0 / .35)" strokeWidth=".5" />
       <path d="M8.5 10.1 H30" stroke="#fffbe8" strokeOpacity=".85" strokeWidth="1" strokeLinecap="round" />
       <ellipse cx="36.5" cy="8.4" rx="3" ry="1.5" fill="#fff" opacity=".5" />
+      {/* a highlight that sweeps along the brass when the door opens (CSS, one shot) */}
+      <rect className="lever-shine" x="-18" y="6" width="14" height="14" fill="url(#lever-shine)" clipPath="url(#lever-clip)" />
     </svg>
   )
 }
@@ -108,6 +131,9 @@ export default function Doors({ lang }: { lang: Lang }) {
   const [near, setNear] = useState(false)
   const [warm, setWarm] = useState<Record<string, true>>({})
   const heat = (key: string) => setWarm((w) => (w[key] ? w : { ...w, [key]: true }))
+  // Doors fade up with a small stagger, once, when the hall scrolls into view. Nothing is hidden before JS runs,
+  // when the hall is already on screen at load, or with reduced motion.
+  const [reveal, setReveal] = useState<'off' | 'armed' | 'in'>('off')
   const lastPointer = useRef<string>('mouse')
   const viaKeyboard = useRef(false) // Enter/Space on a focused door (NOT click.detail: some phones send 0 for taps)
   const busy = useRef(false)
@@ -209,6 +235,29 @@ export default function Doors({ lang }: { lang: Lang }) {
     return () => {
       window.removeEventListener('load', watch)
       io?.disconnect()
+    }
+  }, [])
+
+  useEffect(() => {
+    const el = listRef.current
+    if (!el || !('IntersectionObserver' in window)) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) return // already visible: no animation
+    let done = 0
+    setReveal('armed')
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return
+        io.disconnect()
+        setReveal('in')
+        done = window.setTimeout(() => setReveal('off'), 1700) // drop the transitions once everything has landed
+      },
+      { rootMargin: '0px 0px -12% 0px', threshold: 0.05 },
+    )
+    io.observe(el)
+    return () => {
+      io.disconnect()
+      window.clearTimeout(done)
     }
   }, [])
 
@@ -328,7 +377,7 @@ export default function Doors({ lang }: { lang: Lang }) {
   return (
     <>
       <BrassDefs />
-      <ul ref={listRef} className="doors" data-busy={!!enter}>
+      <ul ref={listRef} className="doors" data-busy={!!enter} data-reveal={reveal === 'off' ? undefined : reveal}>
         {doors.map((d, i) => {
           const isOpen = openKey === d.key
           const isEntering = enter?.key === d.key
@@ -347,11 +396,13 @@ export default function Doors({ lang }: { lang: Lang }) {
               data-lg-shift={i === 5 || i === 8 ? '' : undefined}
               data-lg-last={i === 5 ? '' : undefined}
               className="door-slot"
-              style={{ '--gi': i } as CSSProperties}
+              style={{ '--gi': i, '--bc': BRAND[d.key][0], '--bc2': BRAND[d.key][1] ?? BRAND[d.key][0] } as CSSProperties}
             >
               <span aria-hidden className="wainscot" />
               <span aria-hidden className="wpanel" />
               <span aria-hidden className="cornice" data-c-sm={i > 0 && i % 3 === 0 ? '' : undefined} data-c-lg={i === 5 ? '' : undefined} />
+              <span aria-hidden className="spot" />
+              <span aria-hidden className="sconce" />
               <a
                 href={d.href}
                 aria-label={`${c.open} ${d.label}`}
@@ -420,6 +471,8 @@ export default function Doors({ lang }: { lang: Lang }) {
                         <span className="panel p3" />
                         <span className="panel p4" />
                         <span className="panel p5" />
+                        <span className="hinges" />
+                        <span className="peep" />
                         <span className="plate">{d.label}</span>
                         <Lever />
                         <Keyhole />
@@ -432,6 +485,8 @@ export default function Doors({ lang }: { lang: Lang }) {
               </a>
               <span aria-hidden className="reflect" />
               <span aria-hidden className="contact" />
+              <span aria-hidden className="brand-strip" />
+              <span aria-hidden className="mat" />
               <span aria-hidden className="spill" />
               {!fine && (
                 <span aria-hidden className="door-hint">

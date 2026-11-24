@@ -128,6 +128,7 @@ export default function Avatar({ lang, className = '' }: { lang: Lang; className
               {/* lights are clipped to his silhouette with the cutout itself */}
               <div aria-hidden className="avatar-fx" style={{ '--cutout': `url(${IMAGES.hero})` } as CSSProperties}>
                 <div className="avatar-cone" />
+                <div className="avatar-screen" />
                 <div ref={rimRef} className="avatar-rim" />
               </div>
             </div>

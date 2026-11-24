@@ -104,7 +104,7 @@ export default function Card() {
 
             {/* Lamp (theme switch) standing on the desk, right side. Its base sits in the middle of the desk top. */}
             <div
-              className="absolute right-0 bottom-[calc(var(--fh)+var(--deskH)-var(--deskTop)/2-var(--lampw)*0.128)] z-[4] w-[var(--lampw)] lg:relative lg:bottom-auto lg:right-auto lg:col-start-3 lg:row-start-1 lg:mb-[calc(var(--deskH)-var(--deskTop)/2-var(--lampw)*0.128)] lg:w-full"
+              className="absolute right-0 bottom-[calc(var(--deskB)+var(--deskH)-var(--deskTop)/2-var(--lampw)*0.128)] z-[4] w-[var(--lampw)] lg:relative lg:bottom-auto lg:right-auto lg:col-start-3 lg:row-start-1 lg:mb-[calc(var(--deskH)-var(--deskDrop)-var(--deskTop)/2-var(--lampw)*0.128)] lg:w-full"
               onKeyDownCapture={() => (lampKey.current = true)}
               onPointerDownCapture={() => (lampKey.current = false)}
               onClickCapture={(e) => {
@@ -118,13 +118,13 @@ export default function Card() {
           </div>
 
           {/* Identity */}
-          <header className="rise relative z-[2] mt-7 text-center lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-center lg:text-left" style={{ '--i': 2 } as CSSProperties}>
+          <header className="rise relative z-[2] mt-7 text-center lg:col-start-1 lg:row-start-1 lg:mb-[calc(var(--deskH)-var(--deskDrop)+20px)] lg:mt-0 lg:self-end lg:text-left" style={{ '--i': 2 } as CSSProperties}>
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-brass-text">{c.eyebrow}</p>
-            <h1 className="mt-2 text-balance font-display text-[40px] font-semibold leading-[1.04] tracking-tight lg:text-[clamp(2.2rem,4.2vw,4rem)]">
+            <h1 className="mt-2 text-balance font-display text-[40px] font-semibold leading-[1.04] tracking-tight lg:text-[clamp(2.2rem,4.2vw,3.6rem)]">
               <span className="block">Ramoul Chouaib</span>
               <span className="block font-normal text-brass-text">Taki Eddine</span>
             </h1>
-            <p className="mx-auto mt-3 max-w-[22rem] text-balance text-[16px] font-semibold leading-snug text-brass-text lg:mx-0 lg:max-w-none lg:text-lg">{c.title}</p>
+            <p className="mx-auto mt-3 max-w-[22rem] text-balance text-[16px] font-semibold leading-snug text-brass-text lg:mx-0 lg:max-w-none lg:text-base">{c.title}</p>
             <span className="tc mt-4 inline-block rounded-full border border-line bg-panel px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em]">{c.badge}</span>
             <StatusRow lang={lang} />
             {about && <p className="mx-auto mt-4 max-w-[46ch] text-balance text-[15px] leading-relaxed text-muted lg:mx-0 lg:text-[16px]">{about}</p>}
