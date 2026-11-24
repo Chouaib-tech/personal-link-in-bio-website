@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { Globe, Mail, Phone } from 'lucide-react'
 import { BrandIcon, type BrandName } from '@/components/BrandIcons'
 import { COPY, GMAIL_COMPOSE, LINKS, type Lang } from '@/lib/content'
+import { PREVIEWS, type PreviewKey } from '@/lib/images'
 
 const ICON = 'h-7 w-7 sm:h-9 sm:w-9 lg:h-12 lg:w-12'
 
@@ -103,6 +104,10 @@ export default function Doors({ lang }: { lang: Lang }) {
   const [fine, setFine] = useState(true) // (hover: hover) and (pointer: fine)
   const [reduced, setReduced] = useState(false)
   const listRef = useRef<HTMLUListElement>(null)
+  // Preview images: no request until the doors are near the viewport, or a door is touched / hovered / focused.
+  const [near, setNear] = useState(false)
+  const [warm, setWarm] = useState<Record<string, true>>({})
+  const heat = (key: string) => setWarm((w) => (w[key] ? w : { ...w, [key]: true }))
   const lastPointer = useRef<string>('mouse')
   const viaKeyboard = useRef(false) // Enter/Space on a focused door (NOT click.detail: some phones send 0 for taps)
   const busy = useRef(false)
@@ -181,6 +186,31 @@ export default function Doors({ lang }: { lang: Lang }) {
       lockScroll(false)
     }
   }, [reset, lockScroll])
+
+  useEffect(() => {
+    const el = listRef.current
+    if (!el || !('IntersectionObserver' in window)) return setNear(true)
+    let io: IntersectionObserver | undefined
+    // Wait for the window "load" event so the previews never compete with the hero photo (LCP).
+    const watch = () => {
+      io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            setNear(true)
+            io?.disconnect()
+          }
+        },
+        { rootMargin: '100px 0px' },
+      )
+      io.observe(el)
+    }
+    if (document.readyState === 'complete') watch()
+    else window.addEventListener('load', watch, { once: true })
+    return () => {
+      window.removeEventListener('load', watch)
+      io?.disconnect()
+    }
+  }, [])
 
   // Tap outside closes the open door
   useEffect(() => {
@@ -328,6 +358,9 @@ export default function Doors({ lang }: { lang: Lang }) {
                 {...(isWeb(d.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 className="door-link block rounded-sm focus-visible:ring-offset-4"
                 style={{ zIndex: isOpen || isEntering ? 10 : undefined }}
+                onPointerOver={() => heat(d.key)}
+                onTouchStartCapture={() => heat(d.key)}
+                onFocusCapture={() => heat(d.key)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') viaKeyboard.current = true
                 }}
@@ -360,7 +393,23 @@ export default function Doors({ lang }: { lang: Lang }) {
               >
                 <span className="frame">
                   <span className="recess">
-                    <span id={`doorway-${d.key}`} className="doorway">
+                    <span id={`doorway-${d.key}`} className="doorway" data-img={d.key in PREVIEWS ? '' : undefined}>
+                      {d.key in PREVIEWS && (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            className="doorway-img"
+                            src={near || warm[d.key] ? PREVIEWS[d.key as PreviewKey].src : undefined}
+                            width={PREVIEWS[d.key as PreviewKey].width}
+                            height={PREVIEWS[d.key as PreviewKey].height}
+                            alt={c.previewAlt[d.key as PreviewKey]}
+                            decoding="async"
+                            draggable={false}
+                            style={{ objectPosition: PREVIEWS[d.key as PreviewKey].pos }}
+                          />
+                          <span aria-hidden className="doorway-shade" />
+                        </>
+                      )}
                       {d.icon}
                       <span className="doorway-label">{d.label}</span>
                     </span>

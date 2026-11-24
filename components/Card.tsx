@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ChevronDown } from 'lucide-react'
 import Avatar from '@/components/Avatar'
+import Desk from '@/components/Desk'
 import Doors from '@/components/Doors'
 import StatusRow from '@/components/StatusRow'
 import PullLamp from '@/components/ui/pull-lamp'
@@ -87,7 +88,6 @@ export default function Card() {
           Phone: bust on top, lamp small at the top right, text below. Desktop: text | bust | lamp. */}
       <section
         className="hero relative lg:grid lg:grid-cols-[minmax(0,1fr)_clamp(380px,36vw,540px)_clamp(170px,16vw,240px)] lg:items-end lg:gap-x-7 mt-3 lg:mt-4 lg:px-10 lg:pb-[var(--fh)] lg:pt-14 min-[1360px]:-mx-12"
-        style={{ '--lampw': 'clamp(170px, 16vw, 240px)' } as CSSProperties}
       >
         <div className="stage relative pb-[var(--fh)] pt-3 lg:contents">
           <div aria-hidden className="room-bg">
@@ -96,11 +96,14 @@ export default function Card() {
             <i className="rb-floor" />
           </div>
 
-          <Avatar lang={lang} className="relative z-[1] w-[min(92%,350px)] lg:col-start-2 lg:row-start-1 lg:w-full" />
+          <Avatar lang={lang} className="relative z-[1] w-[min(79%,300px)] lg:col-start-2 lg:row-start-1 lg:w-full" />
 
-          {/* Lamp (theme switch): on a little wall shelf on phones, standing on the floor on desktop */}
+          {/* The desk is in front of him (z above); on desktop it spans under the bust and the lamp. */}
+          <Desk className="lg:col-span-2 lg:col-start-2 lg:row-start-1 lg:-ml-16 lg:-mr-10 lg:self-end" />
+
+          {/* Lamp (theme switch) standing on the desk, right side. Its base sits in the middle of the desk top. */}
           <div
-            className="absolute right-1 top-[78px] z-[2] w-[88px] lg:relative lg:right-auto lg:top-auto lg:z-[1] lg:col-start-3 lg:row-start-1 lg:mb-[calc(var(--lampw)*-0.128)] lg:w-full"
+            className="absolute -right-3.5 bottom-[calc(var(--fh)+var(--deskH)-var(--deskTop)/2-var(--lampw)*0.128)] z-[4] w-[var(--lampw)] lg:relative lg:bottom-auto lg:right-auto lg:col-start-3 lg:row-start-1 lg:mb-[calc(var(--deskH)-var(--deskTop)/2-var(--lampw)*0.128)] lg:w-full"
             onKeyDownCapture={() => (lampKey.current = true)}
             onPointerDownCapture={() => (lampKey.current = false)}
             onClickCapture={(e) => {
@@ -108,7 +111,6 @@ export default function Card() {
             }}
           >
             <PullLamp on={theme === 'light'} onThemeChange={onThemeChange} />
-            <i aria-hidden className="lamp-shelf lg:hidden" />
             <p className="lamp-hint">{c.pullCord}</p>
           </div>
           <Dust />

@@ -102,17 +102,8 @@
    Highlights face the light, shadows fall away from it.
    Only transform + opacity are ever animated.
    ============================================================ */
-.scene {
-  --lx: 1;
-  --sp: 12px; /* scene side padding */
-  --gx: 10px; /* gap between doors */
-  --fh: 44px; /* floor height */
-  --sk: 18px; /* skirting height */
-  --G: 30px; /* wall space between a floor and the next row */
-  --R: 16px;
-  --rail-h: 7px; /* chair rail */
-  --th: 5px; /* door threshold */
-  --stile: 2px; /* gap between wainscot panels */
+:root {
+  --lx: 1; /* the lamp is on the right: highlights face right, shadows fall left */
   /* WALNUT: change these three numbers for oak (e.g. 34 / 48% / 42%) */
   --wh: 26;
   --ws: 44%;
@@ -124,6 +115,18 @@
   --grain-a: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='520'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.3 .011' numOctaves='3' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .08  0 0 0 0 .04  0 0 0 0 .012  1.6 0 0 0 -.6'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
   --grain-b: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='520'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.27 .013' numOctaves='3' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .08  0 0 0 0 .04  0 0 0 0 .012  1.6 0 0 0 -.6'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
   --grain-c: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='520'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.34 .009' numOctaves='3' seed='27' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .08  0 0 0 0 .04  0 0 0 0 .012  1.6 0 0 0 -.6'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+}
+.scene {
+  --lx: 1;
+  --sp: 12px; /* scene side padding */
+  --gx: 10px; /* gap between doors */
+  --fh: 44px; /* floor height */
+  --sk: 18px; /* skirting height */
+  --G: 30px; /* wall space between a floor and the next row */
+  --R: 16px;
+  --rail-h: 7px; /* chair rail */
+  --th: 5px; /* door threshold */
+  --stile: 2px; /* gap between wainscot panels */
   position: relative;
   border-radius: var(--R);
   background-color: var(--wall);
@@ -451,6 +454,49 @@
 .doorway > * {
   position: relative; /* above the glow */
 }
+/* real preview inside the open doorway (Call has none and keeps the plain glowing doorway) */
+.doorway[data-img] {
+  justify-content: flex-end;
+  gap: 0.2rem;
+  padding-bottom: 9%;
+}
+.doorway[data-img]::before {
+  display: none;
+}
+.doorway > .doorway-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+  user-select: none;
+}
+.door-slot[data-open='true'] .doorway-img {
+  opacity: 1;
+}
+/* darkened edges + a gradient under the label so the text stays readable */
+.doorway > .doorway-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.38), transparent 22%, transparent 48%, rgb(5 6 7 / 0.88) 100%),
+    radial-gradient(ellipse 90% 85% at 50% 45%, transparent 55%, rgb(0 0 0 / 0.55) 100%);
+}
+.doorway[data-img] > svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+@media (min-width: 1024px) {
+  .doorway[data-img] > svg {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+.doorway[data-img] > .doorway-label {
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.8);
+}
 .doorway-label {
   font-size: 0.56rem;
   font-weight: 700;
@@ -626,6 +672,18 @@
   transition: opacity 0.25s ease;
   pointer-events: none;
 }
+/* phone: keep the hint of the first / last column inside the wall */
+@media (max-width: 1023px) {
+  .door-slot:nth-child(3n + 1) .door-hint {
+    left: 0;
+    transform: none;
+  }
+  .door-slot:nth-child(3n) .door-hint {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+}
 .door-slot[data-open='true'] .door-hint {
   opacity: 1;
 }
@@ -787,7 +845,8 @@
     opacity: 0;
   }
   .leaf-shade,
-  .spill {
+  .spill,
+  .doorway > .doorway-img {
     transition: none;
   }
   html {
@@ -918,9 +977,9 @@
 .avatar-mask {
   position: absolute;
   inset: 0;
-  -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 99%), linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 90%, transparent 100%), linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%);
   -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to bottom, #000 68%, transparent 99%), linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 90%, transparent 100%), linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%);
   mask-composite: intersect;
 }
 .avatar-img {
@@ -1044,38 +1103,172 @@
 }
 
 /* ---------- Lamp placement helpers ---------- */
-.lamp-shelf {
-  position: absolute;
-  left: -8%;
-  right: -18%;
-  top: 87%;
-  height: 7px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--wood-hi, #7a5233), var(--wood, #5a3a22) 60%, var(--wood-lo, #3b2415));
-  box-shadow:
-    0 3px 5px -1px rgb(0 0 0 / 0.5),
-    inset 0 1px 0 rgb(255 255 255 / 0.18);
-}
 .lamp-hint {
   position: absolute;
-  left: -12%;
-  right: -12%;
-  top: 98%;
+  left: auto;
+  right: 22px; /* the lamp box pokes 14px past the scene edge: keep the text inside */
+  width: 170px;
+  top: 100%;
   margin: 0;
   text-align: center;
   text-wrap: balance;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: 0.75rem; /* 12px: readable on phones */
+  font-weight: 700;
   line-height: 1.25;
-  color: rgb(var(--brass-text));
-  text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  color: #f3dfae; /* sits on the walnut desk front, so a fixed light tone in both themes */
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.75);
 }
 @media (min-width: 1024px) {
   .lamp-hint {
     left: 0;
     right: 0;
-    top: 100%;
+    width: auto;
     font-size: 0.8rem;
+  }
+  .desk-top {
+    border-top-left-radius: 8px;
+  }
+  .desk-front {
+    box-shadow:
+      inset 2px 0 0 rgb(255 232 190 / 0.18),
+      inset 0 2px 3px rgb(0 0 0 / 0.35);
+  }
+}
+
+/* ---------- THE DESK: walnut top + front, in front of the bust ---------- */
+.hero {
+  --lampw: 142px;
+  --deskH: 76px;
+  --deskTop: 32px;
+}
+@media (min-width: 1024px) {
+  .hero {
+    --lampw: clamp(170px, 16vw, 240px);
+    --deskH: 104px;
+    --deskTop: 46px;
+  }
+}
+.desk {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: var(--fh);
+  height: var(--deskH);
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .desk {
+    position: relative; /* a grid item on desktop */
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: auto;
+  }
+}
+.desk-top,
+.desk-front {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background-color: var(--wood);
+}
+.desk-top {
+  top: 0;
+  height: var(--deskTop);
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.04) 55%, rgb(0 0 0 / 0.18)),
+    linear-gradient(90deg, transparent 55%, rgb(255 214 160 / 0.14)),
+    var(--grain-b);
+  background-size: 100% 100%, 100% 100%, 260px 520px;
+  background-position: 0 0, 0 0, 40px 0;
+  box-shadow:
+    inset 0 1px 0 rgb(255 232 190 / 0.5),
+    0 -6px 14px -4px rgb(0 0 0 / 0.5);
+}
+/* brass edge between the top and the front */
+.desk-top::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 3px;
+  background: linear-gradient(180deg, #ecd197, #b98b46 60%, #7e5b24);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+}
+.desk-front {
+  top: var(--deskTop);
+  bottom: 0;
+  background-image:
+    linear-gradient(180deg, rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.38)),
+    var(--grain-c);
+  background-size: 100% 100%, 260px 520px;
+  background-position: 0 0, 120px 0;
+  box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.35);
+}
+/* soft shadow on the floor under the desk + a faint reflection of it */
+.desk::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: calc(var(--fh) * 0.7);
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.12) 60%, transparent);
+}
+/* warm pool from the lamp on the desk top (lamp on = light theme) */
+.desk-glow {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 46%;
+  height: var(--deskTop);
+  opacity: 0;
+  transition: opacity 0.65s ease;
+  background: radial-gradient(ellipse 60% 120% at 62% 40%, rgb(255 214 150 / 0.55), transparent 72%);
+}
+:root[data-theme='light'] .desk-glow {
+  opacity: 1;
+}
+/* props stand on the middle of the desk top */
+.desk-props {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  bottom: calc(var(--deskH) - var(--deskTop) * 0.62);
+}
+.desk-props svg {
+  position: absolute;
+  bottom: 0;
+  height: auto;
+  overflow: visible;
+}
+.prop-laptop {
+  left: 3%;
+  width: 82px;
+}
+.prop-mug {
+  left: 31%;
+  width: 22px;
+}
+.prop-book {
+  left: 40%;
+  width: 40px;
+}
+@media (min-width: 1024px) {
+  .prop-laptop {
+    left: 4%;
+    width: 128px;
+  }
+  .prop-mug {
+    left: 25%;
+    width: 32px;
+  }
+  .prop-book {
+    left: 31%;
+    width: 60px;
   }
 }
 
