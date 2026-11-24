@@ -3,7 +3,7 @@
 Every preview is a PORTRAIT 360x800 image: the doorway is about 0.45 wide / tall, so it fits exactly.
   - phone screenshots (facebook, github, instagram, linkedin, portfolio): at their real size, slid to the right
     so the left part (profile photo + name) is not hidden behind the open door leaf
-  - icons (gmail, call, telegram, whatsapp): the icon on a portrait backdrop, centred on the door
+  - icons (gmail, call, telegram, whatsapp): the icon on a portrait backdrop, just clear of the open door leaf
 
 To change a picture: put the new file in source-images/links-screens/ with the same name
 (png / jpg / jpeg / webp), then run
@@ -19,7 +19,7 @@ root = Path(__file__).resolve().parent.parent
 src, out = root / "source-images" / "links-screens", root / "public" / "images" / "links-screens"
 
 W, H = 360, 800
-CENTER_X, CENTER_Y = 0.5, 0.40  # where the icon sits (fractions of the preview): centred on the door
+CENTER_X, CENTER_Y = 0.56, 0.40  # where the icon sits (fractions of the preview): a little right of the door centre, clear of the open leaf
 ICON_W = 220  # width of the icon itself, in preview pixels (the open door leaf hides at most the outer ~6%)
 SHIFT = int(W * 0.27)  # the open door leaf hides the left ~27% of the doorway: screenshots slide right by this much
 

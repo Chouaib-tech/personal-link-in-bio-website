@@ -516,68 +516,81 @@
     linear-gradient(180deg, rgb(0 0 0 / 0.38), transparent 22%, transparent 48%, rgb(5 6 7 / 0.88) 100%),
     radial-gradient(ellipse 90% 85% at 50% 45%, transparent 55%, rgb(0 0 0 / 0.55) 100%);
 }
-/* Brand icon + label: a small dark tag, centred on the door itself (the same centre line as the nameplate of the
-   closed door) and drawn in FRONT of the leaf, so the open leaf never hides any letter. It fades in as the door opens. */
-.doorway-chip {
+/* Brand icon + label: a small dark tag in the open doorway.
+   It stays centred on the door as far as possible, but never touches the open leaf: the grid has a left spacer of at
+   least --lg (the part of the doorway the leaf covers, plus a small gap), so the tag moves right only as much as needed
+   (almost not at all on desktop, a little on small phones). Still drawn in front of the leaf as a safety net, and
+   faded in as the door opens. */
+.doorway-tag {
+  --lg: 29%;
+  --fs: clamp(7.6px, 2.15vw, 9.4px);
+  --ls: 0.03em;
+  --px: clamp(3px, 1vw, 5px);
   position: absolute;
   z-index: 2;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 9%;
-  transform: translateX(-50%);
-  width: max-content; /* never wrap the label (an abspos box at left:50% only gets half the doorway to fit) */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.4rem 0.6rem 0.45rem;
-  border-radius: 12px;
-  color: #f1dcae;
-  background: rgb(6 8 10 / 0.62);
-  box-shadow: 0 0 0 1px rgb(212 165 104 / 0.24);
+  display: grid;
+  grid-template-columns: minmax(var(--lg), 1fr) auto minmax(3%, 1fr);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease-out;
 }
-.door-slot[data-open='true'] .doorway-chip {
+.door-slot[data-open='true'] .doorway-tag {
   opacity: 1;
   transition-delay: 0.18s;
 }
+.doorway-chip {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--fs) * 0.25);
+  padding: calc(var(--fs) * 0.45) var(--px) calc(var(--fs) * 0.5);
+  border-radius: calc(var(--fs) * 1.3);
+  color: #f1dcae;
+  background: rgb(6 8 10 / 0.62);
+  box-shadow: 0 0 0 1px rgb(212 165 104 / 0.24);
+}
 .doorway-chip > svg {
-  width: 1.4rem;
-  height: 1.4rem;
-}
-@media (min-width: 1024px) {
-  .doorway-chip {
-    padding: 0.6rem 1.1rem 0.65rem;
-    border-radius: 16px;
-  }
-  .doorway-chip > svg {
-    width: 2rem;
-    height: 2rem;
-  }
-}
-.doorway-chip .doorway-label {
-  white-space: nowrap;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 0.8);
-}
-@media (max-width: 639px) {
-  .doorway-chip .doorway-label {
-    --ls: 0.04em; /* small doorways: keep the longest labels compact */
-  }
-}
-@media (max-width: 339px) {
-  .doorway-chip .doorway-label {
-    --ls: 0;
-  }
+  width: calc(var(--fs) * 2.7);
+  height: calc(var(--fs) * 2.7);
 }
 .doorway-label {
-  --ls: 0.1em;
-  font-size: 0.56rem;
+  font-size: var(--fs);
   font-weight: 700;
   letter-spacing: var(--ls);
   padding-left: var(--ls); /* balances the spacing that follows the last letter */
+  white-space: nowrap;
   text-transform: uppercase;
   color: #e9d3a0;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.8);
+}
+@media (max-width: 349px) {
+  /* the smallest phones: a tighter tag so it still clears the open door and the right edge */
+  .doorway-tag {
+    --lg: 29.5%;
+    --fs: 7.1px;
+    --ls: 0.01em;
+    --px: 1.5px;
+  }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .doorway-tag {
+    --lg: 26%;
+    --fs: 11.2px;
+    --ls: 0.12em;
+    --px: 14px;
+  }
+}
+@media (min-width: 1024px) {
+  .doorway-tag {
+    --lg: 27%;
+    --fs: clamp(8.4px, 0.78vw, 11.2px);
+    --ls: 0.1em;
+    --px: clamp(7px, 0.75vw, 12px);
+  }
 }
 
 /* WALNUT LEAF: procedural grain (static image), vertical shading, raised panels */
@@ -1081,10 +1094,6 @@
 }
 
 @media (min-width: 640px) {
-  .doorway-label {
-    --ls: 0.18em;
-    font-size: 0.7rem;
-  }
   .plate {
     letter-spacing: 0.08em;
   }
@@ -1209,7 +1218,7 @@
   .spill,
   .doorway > .doorway-img,
   .lever,
-  .doorway-chip,
+  .doorway-tag,
   .brand-strip,
   .brand-strip::after {
     transition: none;

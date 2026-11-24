@@ -478,10 +478,12 @@ export default function Doors({ lang }: { lang: Lang }) {
                       </span>
                       <span className="leaf-edge" />
                     </span>
-                    {/* brand icon + label: a tag centred on the door, drawn in FRONT of the open leaf so the leaf never hides it */}
-                    <span className="doorway-chip">
-                      {d.icon}
-                      <span className="doorway-label">{d.label}</span>
+                    {/* brand icon + label: a small tag that stays centred on the door but never touches the open leaf */}
+                    <span aria-hidden className="doorway-tag">
+                      <span className="doorway-chip">
+                        {d.icon}
+                        <span className="doorway-label">{d.label}</span>
+                      </span>
                     </span>
                   </span>
                 </span>
